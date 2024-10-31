@@ -1,17 +1,18 @@
-const { userModel } = require("../models");
+const { Op } = require("sequelize");
+const { User } = require("../models");
 
 const createUser = async (obj) => {
   try {
-    const newUser = await userModel.create(obj);
+    const newUser = await User.create(obj);
     return newUser;
   } catch (error) {
     throw error;
   }
 };
 
-const getUser = async (id) => {
+const getUserById = async (userId) => {
   try {
-    const user = await userModel.findByPk(id);
+    const user = await User.findByPk(userId);
     if (!user) {
       throw new Error("El usuario no existe");
     }
@@ -21,7 +22,45 @@ const getUser = async (id) => {
   }
 };
 
+const getUsersByOptions = async (options) => {
+  try {
+    const users = await User.findAll({ where: { [Op.or]: options } });
+    if (!users) {
+      throw new Error("No se encontraron usuarios");
+    }
+    return users;
+  } catch (error) {
+    throw error;
+  }
+};
+
+const updateUser = async (userId, user) => {
+  try {
+    await getUserById(userId);
+    await User.update(user, {
+      where: { id: userId },
+      returning: true,
+    });
+    console.log("Se actualizarion las filas en la DB");
+    return await getUserById(userId);
+  } catch (error) {
+    throw error;
+  }
+};
+
+const deleteUser = async (userId) => {
+  try {
+    await getUserById(userId);
+    return await User.destroy({ where: { id: userId } });
+  } catch (error) {
+    throw error;
+  }
+};
+
 module.exports = {
   createUser,
-  getUser,
+  getUserById,
+  getUsersByOptions,
+  updateUser,
+  deleteUser,
 };

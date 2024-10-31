@@ -1,3 +1,5 @@
-const userModel = require('./user')
+const User = require("./user");
+const Player = require("./player");
 
-module.exports = { userModel }
+module.exports = { User };
+module.exports = { Player };

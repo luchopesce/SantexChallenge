@@ -1,0 +1,51 @@
+<div>
+  <input
+    type="text"
+    [(ngModel)]="filters.name"
+    placeholder="Filtrar por nombre"
+    (input)="onFilterChange()"
+  />
+  <input
+    type="text"
+    [(ngModel)]="filters.club"
+    placeholder="Filtrar por club"
+    (input)="onFilterChange()"
+  />
+  <input
+    type="text"
+    [(ngModel)]="filters.position"
+    placeholder="Filtrar por posición"
+    (input)="onFilterChange()"
+  />
+</div>
+
+<div>
+  <label for="limit">Seleccionar límite de resultados por página:</label>
+  <select id="limit" [(ngModel)]="limit" (change)="onLimitChange(limit)">
+    <option *ngFor="let l of limits" [value]="l">{{ l }}</option>
+  </select>
+</div>
+
+<div *ngIf="data && data.results.length > 0; else noData">
+  <label *ngIf="data.totalResults > 0"
+    >Total results: {{ data.totalResults }}</label
+  >
+  <tr *ngFor="let player of data.results">
+    <td>{{ player.id }}</td>
+    <td>{{ player.long_name }}</td>
+    <td>{{ player.club_name }}</td>
+    <td>{{ player.player_positions }}</td>
+  </tr>
+
+  <button (click)="previousPage()" [disabled]="page === 1">Anterior</button>
+  <button (click)="nextPage()" [disabled]="page === data.totalPages">
+    Siguiente
+  </button>
+  <label *ngIf="data.totalPages > 0">
+    {{ page }} of {{ data.totalPages }} pages</label
+  >
+</div>
+
+<ng-template #noData>
+  <p>No se encontraron jugadores</p>
+</ng-template>

@@ -1,11 +1,29 @@
 const userProvider = require("../providers/userProvider");
 
-const getUser = async (id) => {
-  return await userProvider.getUser(id);
+const getUserById = async (id) => {
+  return await userProvider.getUserById(id);
 };
 
-const createUser = async (obj) => {
-  return await userProvider.createUser(obj);
+const getUsersByOptions = async (options) => {
+  return await userProvider.getUsersByOptions(options);
 };
 
-module.exports = { createUser, getUser };
+const createUser = async (user) => {
+  return await userProvider.createUser(user);
+};
+
+const updateUser = async (id, user) => {
+  return await userProvider.updateUser(id, user);
+};
+
+const deleteUser = async (id) => {
+  return await userProvider.deleteUser(id);
+};
+
+module.exports = {
+  createUser,
+  getUserById,
+  getUsersByOptions,
+  updateUser,
+  deleteUser,
+};
