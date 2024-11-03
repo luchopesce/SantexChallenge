@@ -2,45 +2,46 @@
   <table class="table table-striped table-sm text-end">
     <thead>
       <tr>
-        <th scope="col" class="text-center" (click)="toggleSort('id')">
+        <th scope="col" class="text-center">
+          <!--  (click)="toggleSort('id')"-->
           <i class="bi bi-sort-numeric-down"></i> #ID
         </th>
-        <th scope="col" class="text-center" (click)="toggleSort('name')">
+        <th scope="col" class="text-center">
+          <!-- (click)="toggleSort('name')" -->
           <i class="bi bi-sort-alpha-down"></i> Name
         </th>
-        <th scope="col" class="text-center" (click)="toggleSort('club')">
+        <th scope="col" class="text-center">
+          <!-- (click)="toggleSort('club')" -->
           <i class="bi bi-building"></i> Club
         </th>
-        <th scope="col" class="text-center" (click)="toggleSort('position')">
+        <th scope="col" class="text-center">
+          <!-- (click)="toggleSort('position')" -->
           <i class="bi bi-person-badge"></i> Position
         </th>
-        <th
-          *ngIf="isLoggedIn"
-          scope="col"
-          class="text-center"
-          (click)="toggleSort('details')"
-        >
+        <th *ngIf="isLoggedIn" scope="col" class="text-center">
+          <!-- (click)="toggleSort('details')" -->
           <i class="bi bi-info-circle"></i> Details
         </th>
         <th *ngIf="isLoggedIn" scope="col" class="text-center">Actions</th>
       </tr>
     </thead>
     <tbody>
-      <tr *ngFor="let player of paginatedPlayers">
+      <tr *ngFor="let player of playersList; let i = index">
         <td class="text-center">{{ player.id }}</td>
-        <td class="text-center">{{ player.name }}</td>
-        <td class="text-center">{{ player.club }}</td>
-        <td class="text-center">{{ player.position }}</td>
+        <td class="text-center">{{ player.long_name }}</td>
+        <td class="text-center">{{ player.club_name }}</td>
+        <td class="text-center">{{ player.player_positions }}</td>
         <td *ngIf="isLoggedIn" class="text-center">
-          <a class="link" (click)="openDetailModal(player)">Show details</a>
+          <a class="link">Show details</a>
+          <!--  (click)="openDetailModal(player)" -->
         </td>
         <td *ngIf="isLoggedIn" class="text-center">
           <button
             class="btn btn-sm btn-primary"
             aria-label="Edit"
             style="margin-right: 5px"
-            (click)="openEditModal(player)"
           >
+            <!--  (click)="openEditModal(player)" -->
             <i class="bi bi-pencil-fill"></i>
           </button>
           <button class="btn btn-sm btn-danger" aria-label="Delete">
@@ -84,12 +85,14 @@
       </li>
       <li
         class="page-item"
-        [ngClass]="{ disabled: currentPage * itemsPerPage >= players.length }"
+        [ngClass]="{
+          disabled: currentPage === totalPages
+        }"
       >
         <button
           class="page-link"
           (click)="changePage(currentPage + 1)"
-          [disabled]="currentPage * itemsPerPage >= players.length"
+          [disabled]="currentPage === totalPages"
         >
           Next
         </button>
@@ -98,13 +101,14 @@
   </nav>
 </div>
 
-<app-player-edit
+<!-- <app-player-edit
   [player]="selectedPlayer"
   (close)="closeModal()"
   (save)="saveChanges()"
-></app-player-edit>
+>
+</app-player-edit>
 
 <app-player-detail
   [player]="selectedPlayer"
   (close)="closeModalDetail()"
-></app-player-detail>
+></app-player-detail> -->

@@ -8,8 +8,4 @@ import { PlayerListComponent } from './player-list/player-list.component';
   templateUrl: './player-page.component.html',
   styleUrl: './player-page.component.scss',
 })
-export class PlayerPageComponent {
-  selectVersion(version: string) {
-    console.log(`Selected version: ${version}`);
-  }
-}
+export class PlayerPageComponent {}

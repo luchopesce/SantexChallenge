@@ -3,7 +3,6 @@ const { Player } = require("../models");
 const { Parser } = require("json2csv");
 
 const getPlayers = async (params) => {
-  console.log(params);
   const page = parseInt(params.page) || 1;
   const limit = parseInt(params.limit) || 10;
   const offset = (page - 1) * limit;
@@ -12,6 +11,25 @@ const getPlayers = async (params) => {
     limit: limit,
     offset,
   };
+
+  if (params.searchTerm) {
+    options.where = {
+      [Op.or]: [
+        {
+          id: { [Op.like]: `%${params.searchTerm}%` },
+        },
+        {
+          long_name: { [Op.like]: `%${params.searchTerm}%` },
+        },
+        {
+          club_name: { [Op.like]: `%${params.searchTerm}%` },
+        },
+        {
+          player_positions: { [Op.like]: `%${params.searchTerm}%` },
+        },
+      ],
+    };
+  }
 
   const playerAttributes = Object.keys(Player.rawAttributes);
   for (const attr of playerAttributes) {
@@ -26,8 +44,8 @@ const getPlayers = async (params) => {
       currentPage: page,
       limit: limit,
       totalPages: Math.ceil(count / limit),
-      totalResults: count,
-      totalItems: rows,
+      totalItems: count,
+      payload: rows,
     };
   } catch (error) {
     console.error("Error al traer players", error);
