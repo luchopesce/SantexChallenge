@@ -5,10 +5,11 @@ import { RouterLink } from '@angular/router';
 import { PlayerDetailComponent } from '../player-detail/player-detail.component';
 import { AuthService } from '../../../core/services/auth.service';
 import { debounceTime, distinctUntilChanged, finalize } from 'rxjs';
-import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
+import { ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ApiService } from '../../../core/services/api.service';
 import { SearchService } from '../../../core/services/search.service';
+import * as bootstrap from 'bootstrap';
 
 @Component({
   selector: 'app-player-list',
@@ -29,11 +30,14 @@ export class PlayerListComponent implements OnInit {
   error: string | null = null;
   sortBy: string = '';
   playersList: any[] = [];
+  selectedPlayer: any;
   totalResults: number = 0;
   currentPage: number = 1;
   itemsPerPage: number = 10;
   totalPages: number = 1;
   searchTerm: string = '';
+  playerSkills = {};
+  private playerCache: { [id: string]: any } = {};
 
   constructor(
     private apiService: ApiService,
@@ -69,12 +73,54 @@ export class PlayerListComponent implements OnInit {
         this.searchTerm,
         this.sortBy
       )
-      .pipe(finalize(() => (this.isLoading = false)))
+      .pipe(
+        debounceTime(300),
+        distinctUntilChanged(),
+        finalize(() => (this.isLoading = false))
+      )
       .subscribe(
         (res: any) => {
           this.playersList = res.payload.payload;
           this.totalResults = res.payload.totalResults;
           this.totalPages = res.payload.totalPages;
+        },
+        (error) => {
+          this.error = 'Problems in fetch';
+          console.error('Error fetching players:', error);
+        }
+      );
+  }
+
+  getPlayerById(playerId) {
+    if (this.playerCache[playerId]) {
+      this.selectedPlayer = this.playerCache[playerId];
+      return;
+    }
+    this.isLoading = true;
+    this.error = null;
+    this.apiService
+      .getById(playerId)
+      .pipe(
+        debounceTime(100),
+        distinctUntilChanged(),
+        finalize(() => (this.isLoading = false))
+      )
+      .subscribe(
+        (res: any) => {
+          this.selectedPlayer = res.payload;
+          this.selectedPlayer = {
+            ...this.selectedPlayer,
+            skills: {
+              pace: this.selectedPlayer.pace,
+              shooting: this.selectedPlayer.shooting,
+              passing: this.selectedPlayer.passing,
+              dribbling: this.selectedPlayer.dribbling,
+              defending: this.selectedPlayer.defending,
+              physic: this.selectedPlayer.physic,
+            },
+          };
+          this.playerCache[playerId] = this.selectedPlayer;
+          console.log(this.selectedPlayer.skills);
         },
         (error) => {
           this.error = 'Problems in fetch';
@@ -95,6 +141,25 @@ export class PlayerListComponent implements OnInit {
       this.itemsPerPage = newLimit;
       this.currentPage = 1;
       this.getAllPlayerList();
+    }
+  }
+
+  closeModalDetail() {
+    const modalElement = document.getElementById('detailModal');
+    if (modalElement) {
+      const modal = bootstrap.Modal.getInstance(modalElement);
+      if (modal) {
+        modal.hide();
+      }
+    }
+  }
+
+  openDetailModal(playerId) {
+    this.getPlayerById(playerId);
+    const modalElement = document.getElementById('detailModal');
+    if (modalElement) {
+      const modal = new bootstrap.Modal(modalElement);
+      modal.show();
     }
   }
 }

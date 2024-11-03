@@ -13,8 +13,8 @@ router.get("/", async (req, res) => {
 });
 
 router.get("/export-csv", async (req, res) => {
-  const filters = req.query;
   try {
+    const filters = req.query;
     const csvData = await playerService.exportPlayers(filters);
     res.status(200).send(csvData);
   } catch (error) {

@@ -13,3 +13,19 @@ th i {
   margin: 0 10px;
   padding: 5px 10px;
 }
+
+.form-select {
+  min-width: 120px;
+}
+.pagination .page-link {
+  color: #007bff; /* Color del texto por defecto */
+}
+
+.pagination .page-link:hover {
+  background-color: #0056b3; /* Color de fondo al pasar el mouse */
+  color: #ffffff; /* Color del texto al pasar el mouse */
+}
+
+.pagination .page-item.disabled .page-link {
+  color: #6c757d;
+}

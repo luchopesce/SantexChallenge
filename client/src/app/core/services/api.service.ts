@@ -32,4 +32,20 @@ export class ApiService {
 
     return this.http.get(`${this.apiUrl}/player`, { params });
   }
+
+  getById(playerId: string = ''): Observable<any> {
+    return this.http.get(`${this.apiUrl}/player/${playerId}`);
+  }
+
+  exportCSV(searchTerm: string = ''): Observable<Blob> {
+    const params: any = {};
+    if (searchTerm) {
+      params.searchTerm = searchTerm;
+    }
+
+    return this.http.get(`${this.apiUrl}/player/export-csv`, {
+      params,
+      responseType: 'blob',
+    });
+  }
 }

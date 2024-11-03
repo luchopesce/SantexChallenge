@@ -10,7 +10,7 @@ import { RadarChartComponent } from '../../../core/components/radar-chart/radar-
   styleUrls: ['./player-detail.component.scss'],
 })
 export class PlayerDetailComponent implements OnInit {
-  @Input() player: any;
+  @Input() player?: any;
   @Output() close = new EventEmitter<void>();
   loading: boolean = false;
 

@@ -1,0 +1,7 @@
+.toast {
+  transition: opacity 0.5s linear;
+}
+
+.toast.show {
+  opacity: 1;
+}

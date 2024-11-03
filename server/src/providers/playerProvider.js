@@ -69,18 +69,29 @@ const exportPlayers = async (params) => {
   const options = {
     where: {},
   };
+  console.log(params.searchTerm);
 
-  const playerAttributes = Object.keys(Player.rawAttributes);
-  for (const attr of playerAttributes) {
-    if (params[attr]) {
-      options.where[attr] = { [Op.like]: `%${params[attr]}%` };
-    }
+  if (params.searchTerm) {
+    options.where = {
+      [Op.or]: [
+        {
+          id: { [Op.like]: `%${params.searchTerm}%` },
+        },
+        {
+          long_name: { [Op.like]: `%${params.searchTerm}%` },
+        },
+        {
+          club_name: { [Op.like]: `%${params.searchTerm}%` },
+        },
+        {
+          player_positions: { [Op.like]: `%${params.searchTerm}%` },
+        },
+      ],
+    };
   }
 
-  const queryOptions = Object.keys(params).length > 0 ? options : {};
-
   try {
-    const data = await Player.findAll(queryOptions);
+    const data = await Player.findAll(options);
     const jsonData = data.map((record) => record.toJSON());
     const json2csvParser = new Parser();
     const csv = json2csvParser.parse(jsonData);
