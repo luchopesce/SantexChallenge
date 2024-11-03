@@ -1,0 +1,15 @@
+th i {
+  margin-right: 5px; /* Ajusta el espacio entre el icono y el texto */
+}
+
+.pagination {
+  margin-top: 20px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.pagination button {
+  margin: 0 10px;
+  padding: 5px 10px;
+}
