@@ -37,6 +37,14 @@ export class ApiService {
     return this.http.get(`${this.apiUrl}/player/${playerId}`);
   }
 
+  updatePlayer(player: any): Observable<any> {
+    return this.http.put(`${this.apiUrl}/player/${player.id}`, player);
+  }
+
+  deletePlayer(playerId: any): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/player/${playerId}`);
+  }
+
   exportCSV(searchTerm: string = ''): Observable<Blob> {
     const params: any = {};
     if (searchTerm) {

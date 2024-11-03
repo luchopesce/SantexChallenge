@@ -48,7 +48,7 @@ const getPlayers = async (params) => {
       payload: rows,
     };
   } catch (error) {
-    console.error("Error al traer players", error);
+    console.error("Error al traer los players", error);
     throw error;
   }
 };
@@ -61,6 +61,7 @@ const getPlayerById = async (playerId) => {
     }
     return player;
   } catch (error) {
+    console.error("Error al traer el player", error);
     throw error;
   }
 };
@@ -69,7 +70,6 @@ const exportPlayers = async (params) => {
   const options = {
     where: {},
   };
-  console.log(params.searchTerm);
 
   if (params.searchTerm) {
     options.where = {
@@ -102,8 +102,34 @@ const exportPlayers = async (params) => {
   }
 };
 
+const updatePlayer = async (playerId, newPlayerUpdated) => {
+  try {
+    await getPlayerById(playerId);
+    await Player.update(newPlayerUpdated, {
+      where: { id: parseInt(playerId) },
+      returning: true,
+    });
+    console.log("Se actualizarion las filas en la DB");
+    return await getPlayerById(playerId);
+  } catch (error) {
+    console.error("Error al actualizar player:", error);
+    throw error;
+  }
+};
+
+const deletePlayer = async (playerId) => {
+  try {
+    await getPlayerById(playerId);
+    return await Player.destroy({ where: { id: parseInt(playerId) } });
+  } catch (error) {
+    throw error;
+  }
+};
+
 module.exports = {
   getPlayers,
   getPlayerById,
   exportPlayers,
+  updatePlayer,
+  deletePlayer,
 };

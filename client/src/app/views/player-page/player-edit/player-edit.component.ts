@@ -14,6 +14,17 @@ export class PlayerEditComponent {
   @Output() close = new EventEmitter<void>();
   @Output() save = new EventEmitter<void>();
 
+  fieldsForm = [
+    { key: 'fifa_version', label: 'Version', placeholder: 'Enter version' },
+    { key: 'long_name', label: 'Name', placeholder: 'Enter name' },
+    { key: 'club_name', label: 'Club', placeholder: 'Enter club' },
+    {
+      key: 'player_positions',
+      label: 'Position',
+      placeholder: 'Enter position',
+    },
+  ];
+
   onSave() {
     this.save.emit();
   }
