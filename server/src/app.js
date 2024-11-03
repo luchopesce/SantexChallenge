@@ -25,4 +25,4 @@ app.use(
 );
 
 app.use(bodyParser.json());
-app.use("/player", playerRouter);
+app.use(`${process.env.SERVER_NAME}/player`, playerRouter);
