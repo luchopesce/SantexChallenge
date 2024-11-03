@@ -1,0 +1,34 @@
+<div
+  class="modal fade"
+  id="detailModal"
+  tabindex="-1"
+  aria-labelledby="detailModalLabel"
+  aria-hidden="true"
+>
+  <div
+    class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable"
+  >
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">{{ player.name }} - Details</h5>
+        <button
+          type="button"
+          class="btn-close"
+          (click)="onClose()"
+          aria-label="Close"
+        ></button>
+      </div>
+      <div class="modal-body">
+        <p><strong>Club:</strong> {{ player.club }}</p>
+        <p><strong>Position:</strong> {{ player.position }}</p>
+        <p><strong>Details:</strong> {{ player.details }}</p>
+        <div class="d-flex flex-column align-items-center" style="width: 100%">
+          <app-radar-chart
+            [player]="player"
+            style="width: 100%; height: 100%"
+          ></app-radar-chart>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

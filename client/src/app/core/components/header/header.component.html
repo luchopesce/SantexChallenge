@@ -4,7 +4,7 @@
   </a>
 
   <ul class="navbar-nav flex-row d-md-none">
-    <li class="nav-item text-nowrap">
+    <li class="nav-item text-nowrap" *ngIf="isSearchVisible">
       <button
         class="nav-link px-3 text-white"
         type="button"
@@ -32,7 +32,11 @@
     </li>
   </ul>
 
-  <div id="navbarSearch" class="navbar-search w-100 collapse">
+  <div
+    id="navbarSearch"
+    class="navbar-search w-100 collapse"
+    [ngClass]="{ show: isSearchVisible }"
+  >
     <input
       class="form-control w-100 rounded-0 border-0"
       type="text"
