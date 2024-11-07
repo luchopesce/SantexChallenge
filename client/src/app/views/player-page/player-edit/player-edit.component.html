@@ -9,7 +9,7 @@
     <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title" id="editModalLabel">
-          Edit "{{ player.name }}"
+          Edit "{{ player?.long_name }}"
         </h5>
         <button
           type="button"
@@ -18,43 +18,28 @@
           aria-label="Close"
         ></button>
       </div>
-      <div class="modal-body">
-        <form>
-          <div class="mb-3">
-            <label for="playerName" class="form-label">Name</label>
-            <input
-              type="text"
-              class="form-control"
-              id="playerName"
-              [(ngModel)]="player.name"
-              name="playerName"
-              placeholder="Enter name"
-            />
-          </div>
-          <div class="mb-3">
-            <label for="playerClub" class="form-label">Club</label>
-            <input
-              type="text"
-              class="form-control"
-              id="playerClub"
-              [(ngModel)]="player.club"
-              name="playerClub"
-              placeholder="Enter club"
-            />
-          </div>
-          <div class="mb-3">
-            <label for="playerPosition" class="form-label">Position</label>
-            <input
-              type="text"
-              class="form-control"
-              id="playerPosition"
-              [(ngModel)]="player.position"
-              name="playerPosition"
-              placeholder="Enter position"
-            />
-          </div>
-        </form>
-      </div>
+      <div *ngIf="!player; else playerContent">Cargando...</div>
+
+      <ng-template #playerContent>
+        <div class="modal-body">
+          <form>
+            <div *ngFor="let field of fieldsForm" class="mb-3">
+              <label [for]="field.key" class="form-label">{{
+                field.label
+              }}</label>
+              <input
+                type="text"
+                class="form-control"
+                [id]="field.key"
+                [(ngModel)]="player[field.key]"
+                [name]="field.key"
+                [placeholder]="field.placeholder"
+              />
+            </div>
+          </form>
+        </div>
+      </ng-template>
+
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" (click)="onClose()">
           Close

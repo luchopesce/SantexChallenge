@@ -3,3 +3,61 @@
     padding: 10px; /* Ajusta el padding según sea necesario */
   }
 }
+
+.player-overall-box {
+  border: 2px solid #ffc107;
+  border-radius: 50%;
+  width: 100px;
+  height: 100px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  margin: auto; /* Centrado automático */
+}
+
+.player-overall-box h1 {
+  margin-bottom: 0;
+}
+
+.fifa-header {
+  background: linear-gradient(135deg, #0066cc, #003366);
+  border-top-left-radius: 1rem;
+  border-top-right-radius: 1rem;
+}
+
+.fifa-body {
+  background-color: #ffffff;
+}
+
+.fifa-footer {
+  background-color: #f1f1f1;
+  border-bottom-left-radius: 1rem;
+  border-bottom-right-radius: 1rem;
+}
+
+.text-center {
+  text-align: center;
+}
+
+.text-md-start {
+  text-align: start;
+}
+
+.spinner-border {
+  width: 50px;
+  height: 50px;
+}
+
+.spinner-border.text-primary {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}

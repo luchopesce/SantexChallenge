@@ -1,18 +1,17 @@
 const { DataTypes } = require("sequelize");
 const { sequelize } = require("../config/db");
 
-const Player = sequelize.define(
-  "players",
+const Player1 = sequelize.define(
+  "players_santexes",
   {
     player_id: {
       type: DataTypes.INTEGER,
-      allowNull: false,
       primaryKey: true,
+      allowNull: false,
     },
     fifa_version: {
       type: DataTypes.STRING,
       allowNull: false,
-      primaryKey: true,
     },
     fifa_update: {
       type: DataTypes.STRING,
@@ -259,17 +258,10 @@ const Player = sequelize.define(
       allowNull: true,
     },
   },
-
   {
-    tableName: "players",
-    timestamps: true,
-    indexes: [
-      {
-        unique: true,
-        fields: ["player_id", "fifa_version"],
-      },
-    ],
+    tableName: "players_santexes",
+    timestamps: false,
   }
 );
 
-module.exports = Player;
+module.exports = Player1;

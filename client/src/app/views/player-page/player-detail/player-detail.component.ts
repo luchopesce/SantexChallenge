@@ -9,12 +9,10 @@ import { RadarChartComponent } from '../../../core/components/radar-chart/radar-
   templateUrl: './player-detail.component.html',
   styleUrls: ['./player-detail.component.scss'],
 })
-export class PlayerDetailComponent implements OnInit {
+export class PlayerDetailComponent {
   @Input() player: any;
   @Output() close = new EventEmitter<void>();
   loading: boolean = false;
-
-  ngOnInit(): void {}
 
   onClose() {
     this.close.emit();

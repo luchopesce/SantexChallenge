@@ -16,7 +16,7 @@ import { BaseChartDirective } from 'ng2-charts';
   imports: [BaseChartDirective],
 })
 export class RadarChartComponent implements OnChanges {
-  @Input() player?: { name: string; skills: { [key: string]: number } };
+  @Input() player?: { long_name: string; skills: { [key: string]: number } };
 
   @ViewChild(BaseChartDirective) chart?: BaseChartDirective;
 
@@ -57,7 +57,7 @@ export class RadarChartComponent implements OnChanges {
         datasets: [
           {
             data: statsArray,
-            label: this.player.name,
+            label: this.player.long_name,
           },
         ],
       };
