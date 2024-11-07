@@ -7,7 +7,13 @@ const sequelize = new Sequelize(
   {
     host: process.env.DB_HOST,
     dialect: "mysql",
-    logging: console.log,
+    logging: (msg) => {
+      if (msg.includes("SELECT")) {
+        console.log(`[SQL SELECT] ${msg.slice(0, 80)}...`); // Log corto solo para SELECT
+      } else {
+        console.log(`[SQL] ${msg}`);
+      }
+    },
   }
 );
 
