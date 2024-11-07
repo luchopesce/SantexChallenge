@@ -11,6 +11,7 @@ import { FormsModule } from '@angular/forms'; // Importa FormsModule
 })
 export class PlayerEditComponent {
   @Input() player: any;
+  loading: boolean = false;
   @Output() close = new EventEmitter<void>();
   @Output() save = new EventEmitter<void>();
 

@@ -33,16 +33,28 @@ export class ApiService {
     return this.http.get(`${this.apiUrl}/player`, { params });
   }
 
-  getById(playerId: string = ''): Observable<any> {
-    return this.http.get(`${this.apiUrl}/player/${playerId}`);
+  getById(player: any): Observable<any> {
+    const playerId = player.player_id;
+    const fifaVersion = player.fifa_version;
+    return this.http.get(`${this.apiUrl}/player/${playerId}/${fifaVersion}`);
   }
 
-  updatePlayer(player: any): Observable<any> {
-    return this.http.put(`${this.apiUrl}/player/${player.id}`, player);
+  updatePlayer(originalPlayer: any, updatedPlayer: any): Observable<any> {
+    console.log(originalPlayer);
+    const playerId = originalPlayer.player_id;
+    const fifaVersion = originalPlayer.fifa_version;
+    return this.http.put(
+      `${this.apiUrl}/player/${playerId}/${fifaVersion}`,
+      updatedPlayer
+    );
   }
 
   deletePlayer(playerId: any): Observable<any> {
     return this.http.delete(`${this.apiUrl}/player/${playerId}`);
+  }
+
+  importCSV(fileData: FormData): Observable<any> {
+    return this.http.post(`${this.apiUrl}/player/import-csv`, fileData);
   }
 
   exportCSV(searchTerm: string = ''): Observable<Blob> {

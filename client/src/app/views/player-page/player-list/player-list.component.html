@@ -31,13 +31,13 @@
     </thead>
     <tbody>
       <tr *ngFor="let player of playersList; let i = index">
-        <td class="text-center">{{ player.id }}</td>
+        <td class="text-center">{{ player.player_id }}</td>
         <td class="text-center">{{ player.fifa_version }}</td>
         <td class="text-center">{{ player.long_name }}</td>
         <td class="text-center">{{ player.club_name }}</td>
         <td class="text-center">{{ player.player_positions }}</td>
         <td *ngIf="isLoggedIn" class="text-center">
-          <a class="link" (click)="openModal('detailModal', player.id)"
+          <a class="link" (click)="openModal('detailModal', player)"
             >Show details</a
           >
         </td>
@@ -46,14 +46,14 @@
             class="btn btn-sm btn-primary"
             aria-label="Edit"
             style="margin-right: 5px"
-            (click)="openModal('editModal', player.id)"
+            (click)="openModal('editModal', player)"
           >
             <i class="bi bi-pencil-fill"></i>
           </button>
           <button
             class="btn btn-sm btn-danger"
             aria-label="Delete"
-            (click)="openModal('confirmDeleteModal', player.id)"
+            (click)="openModal('confirmDeleteModal', player)"
           >
             <i class="bi bi-trash-fill"></i>
           </button>
@@ -97,12 +97,12 @@
       </li>
       <li
         class="page-item"
-        [ngClass]="{ disabled: currentPage === totalPages }"
+        [ngClass]="{ disabled: currentPage === totalPages || totalPages === 0 }"
       >
         <button
           class="page-link"
           (click)="changePage(currentPage + 1)"
-          [disabled]="currentPage === totalPages"
+          [disabled]="currentPage === totalPages || totalPages === 0"
         >
           Next
         </button>
@@ -114,7 +114,7 @@
 <app-player-edit
   [player]="selectedPlayer"
   (close)="closeModal('editModal')"
-  (save)="saveChanges()"
+  (save)="updatePlayer(selectedPlayer)"
 >
 </app-player-edit>
 
@@ -149,7 +149,7 @@
         <button
           type="button"
           class="btn btn-danger"
-          (click)="deletePlayer(selectedPlayer.id)"
+          (click)="deletePlayer(selectedPlayer.player_id)"
         >
           Delete
         </button>

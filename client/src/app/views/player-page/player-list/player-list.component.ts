@@ -6,7 +6,6 @@ import { PlayerDetailComponent } from '../player-detail/player-detail.component'
 import { AuthService } from '../../../core/services/auth.service';
 import { debounceTime, distinctUntilChanged, finalize } from 'rxjs';
 import { ReactiveFormsModule } from '@angular/forms';
-import { ActivatedRoute, Router } from '@angular/router';
 import { ApiService } from '../../../core/services/api.service';
 import { SearchService } from '../../../core/services/search.service';
 import * as bootstrap from 'bootstrap';
@@ -37,12 +36,11 @@ export class PlayerListComponent implements OnInit {
   itemsPerPage: number = 10;
   totalPages: number = 1;
   searchTerm: string = '';
-  private playerCache: { [id: string]: any } = {};
+  originalPlayer: any = null;
+  private playerCache: { [cacheKey: string]: any } = {};
 
   constructor(
     private apiService: ApiService,
-    private router: Router,
-    private route: ActivatedRoute,
     private authService: AuthService,
     private searchService: SearchService,
     private utilsService: UtilsService
@@ -51,7 +49,7 @@ export class PlayerListComponent implements OnInit {
   ngOnInit() {
     this.isLoggedIn = this.authService.isLoggedIn();
     this.setupSearchListener();
-    this.getAllPlayerList();
+    this.getAllPlayers();
   }
 
   setupSearchListener() {
@@ -60,11 +58,11 @@ export class PlayerListComponent implements OnInit {
       .subscribe((value) => {
         this.searchTerm = value;
         this.currentPage = 1;
-        this.getAllPlayerList();
+        this.getAllPlayers();
       });
   }
 
-  getAllPlayerList() {
+  getAllPlayers() {
     this.isLoading = true;
     this.error = null;
 
@@ -82,55 +80,37 @@ export class PlayerListComponent implements OnInit {
       )
       .subscribe({
         next: (res: any) => {
-          this.playersList = res.payload.payload;
-          this.totalResults = res.payload.totalResults;
-          this.totalPages = res.payload.totalPages;
+          this.playersList = res.data;
+          this.totalResults = res.pagination.totalResults;
+          this.totalPages = res.pagination.totalPages;
         },
         error: (error) => {
-          this.error = this.utilsService.handleError(error, 'fetching players');
-        },
-        complete: () => {
-          this.isLoading = false;
-        },
-      });
-  }
-
-  saveChanges() {
-    if (this.selectedPlayer) {
-      this.isLoading = true;
-      this.error = null;
-
-      this.apiService.updatePlayer(this.selectedPlayer).subscribe({
-        next: (res: any) => {
-          const updatedPlayer = res.payload;
-          const index = this.playersList.findIndex(
-            (p) => p.id === updatedPlayer.id
+          const errorMessage = error?.message || 'Error desconocido';
+          this.error = this.utilsService.handleError(
+            errorMessage,
+            'fetching list of players'
           );
-          if (index !== -1) {
-            this.playersList[index] = updatedPlayer;
-          }
-          this.closeModal('editModal');
-        },
-        error: (error) => {
-          this.error = this.utilsService.handleError(error, 'updating players');
         },
         complete: () => {
           this.isLoading = false;
         },
       });
-    }
   }
 
-  getPlayerById(playerId) {
-    if (this.playerCache[playerId]) {
-      this.selectedPlayer = this.playerCache[playerId];
-      return;
-    }
+  getPlayerById(player: any) {
     this.isLoading = true;
     this.error = null;
 
+    const cacheKey = `${player.player_id}-${player.fifa_version}-${player.updatedAt}`;
+
+    if (this.playerCache[cacheKey]) {
+      this.selectedPlayer = this.playerCache[cacheKey];
+      this.isLoading = false;
+      return;
+    }
+
     this.apiService
-      .getById(playerId)
+      .getById(player)
       .pipe(
         debounceTime(100),
         distinctUntilChanged(),
@@ -138,13 +118,15 @@ export class PlayerListComponent implements OnInit {
       )
       .subscribe({
         next: (res: any) => {
-          this.selectedPlayer = res.payload;
-
-          this.playerCache[playerId] = this.selectedPlayer;
-          console.log(this.selectedPlayer.skills);
+          this.selectedPlayer = res.data;
+          this.playerCache[cacheKey] = this.selectedPlayer;
         },
         error: (error) => {
-          this.error = this.utilsService.handleError(error, 'fetching players');
+          const errorMessage = error?.message || 'Error desconocido';
+          this.error = this.utilsService.handleError(
+            errorMessage,
+            'fetching this player'
+          );
         },
         complete: () => {
           this.isLoading = false;
@@ -152,14 +134,44 @@ export class PlayerListComponent implements OnInit {
       });
   }
 
-  deletePlayer(playerId) {
+  updatePlayer(updatedPlayer: any) {
+    if (!this.originalPlayer?.player_id || !this.originalPlayer?.fifa_version) {
+      this.error = 'Jugador inválido o datos faltantes';
+      return;
+    }
+
+    this.isLoading = true;
+    this.error = null;
+
+    this.apiService.updatePlayer(this.originalPlayer, updatedPlayer).subscribe({
+      next: (res: any) => {
+        const updatedPlayerData = res.data;
+        console.log(updatedPlayerData);
+        this.getAllPlayers();
+
+        this.closeModal('editModal');
+      },
+      error: (error) => {
+        const errorMessage = error?.message || 'Error desconocido';
+        this.error = this.utilsService.handleError(
+          errorMessage,
+          'updating players'
+        );
+      },
+      complete: () => {
+        this.isLoading = false;
+      },
+    });
+  }
+
+  deletePlayer(playerId: any) {
     this.isLoading = true;
     this.error = null;
 
     if (playerId !== null) {
       this.apiService.deletePlayer(playerId).subscribe({
         next: (res: any) => {
-          this.getAllPlayerList();
+          this.getAllPlayers();
           this.closeModal('confirmDeleteModal');
         },
         error: (error) => {
@@ -174,7 +186,7 @@ export class PlayerListComponent implements OnInit {
 
   changePage(page: number): void {
     this.currentPage = page;
-    this.getAllPlayerList();
+    this.getAllPlayers();
   }
 
   updateItemsPerPage(event: Event): void {
@@ -183,7 +195,7 @@ export class PlayerListComponent implements OnInit {
     if (!isNaN(newLimit)) {
       this.itemsPerPage = newLimit;
       this.currentPage = 1;
-      this.getAllPlayerList();
+      this.getAllPlayers();
     }
   }
 
@@ -197,8 +209,9 @@ export class PlayerListComponent implements OnInit {
     }
   }
 
-  openModal(modalId, playerId) {
-    this.getPlayerById(playerId);
+  openModal(modalId, player) {
+    this.originalPlayer = JSON.parse(JSON.stringify(player));
+    this.getPlayerById(player);
     const modalElement = document.getElementById(modalId);
     if (modalElement) {
       const modal = new bootstrap.Modal(modalElement);
