@@ -2,7 +2,7 @@ const { Op } = require("sequelize");
 const fs = require("fs").promises;
 const { Parser } = require("json2csv");
 const { parseCSVFile } = require("../utils/utils");
-const { Player, Player1 } = require("../models");
+const { Player } = require("../models");
 
 const getPlayers = async (params) => {
   const page = parseInt(params.page) || 1;
@@ -41,8 +41,8 @@ const getPlayers = async (params) => {
       data: rows,
     };
   } catch (error) {
-    console.error("Error al obtener los jugadores:", error);
-    throw new Error("Error al obtener los jugadores");
+    console.error("ERROR:", error.message);
+    throw new Error("Problemas al obtener los players desde la base de datos");
   }
 };
 
@@ -54,13 +54,41 @@ const getPlayerById = async (playerId, fifaVersion) => {
         fifa_version: fifaVersion,
       },
     });
-    if (!player) {
-      throw new Error("El player no existe");
-    }
     return player;
   } catch (error) {
-    console.error("Problemas al traer player", error);
-    throw new Error("Problemas al traer player");
+    console.error("ERROR:", error.message);
+    throw new Error("Problemas al obtener el player desde la base de datos");
+  }
+};
+
+const updatePlayer = async (playerId, fifaVersion, newPlayerUpdated) => {
+  try {
+    await Player.update(newPlayerUpdated, {
+      where: { player_id: playerId, fifa_version: fifaVersion },
+      returning: true,
+    });
+
+    const playerUpdated = await getPlayerById(
+      newPlayerUpdated.player_id,
+      newPlayerUpdated.fifa_version
+    );
+    return playerUpdated;
+  } catch (error) {
+    console.error("ERROR:", error.message);
+    throw new Error("Problemas al actualizar el player desde la base de datos");
+  }
+};
+
+const deletePlayer = async (playerId, fifaVersion) => {
+  try {
+    const playerToDelete = await getPlayerById(playerId, fifaVersion);
+    await Player.destroy({
+      where: { player_id: parseInt(playerId), fifa_version: fifaVersion },
+    });
+    return playerToDelete;
+  } catch (error) {
+    console.error("ERROR:", error.message);
+    throw new Error("Problemas al eliminar el player");
   }
 };
 
@@ -72,10 +100,49 @@ const importPlayers = async (file) => {
     let totalProcessed = 0;
     let totalCreated = 0;
 
-    for (let i = 0; i < parsePlayers.length; i += chunkSize) {
-      const chunk = parsePlayers.slice(i, i + chunkSize);
-      const result = await Player.bulkCreate(chunk, {
-        ignoreDuplicates: true,
+    const filteredPlayers = {};
+
+    parsePlayers.forEach((player) => {
+      const key = `${player.player_id}-${player.fifa_version}`;
+      const currentUpdate = parseInt(player.fifa_update);
+
+      if (
+        !filteredPlayers[key] ||
+        currentUpdate > parseInt(filteredPlayers[key].fifa_update)
+      ) {
+        filteredPlayers[key] = player;
+      }
+    });
+
+    const uniquePlayersList = Object.values(filteredPlayers);
+
+    for (let i = 0; i < uniquePlayersList.length; i += chunkSize) {
+      const chunk = uniquePlayersList.slice(i, i + chunkSize);
+
+      const existingPlayers = await Player.findAll({
+        where: {
+          [Op.or]: chunk.map((player) => ({
+            [Op.and]: [
+              { player_id: player.player_id },
+              { fifa_version: player.fifa_version },
+            ],
+          })),
+        },
+        attributes: ["player_id", "fifa_version"],
+      });
+
+      const existingKeys = new Set(
+        existingPlayers.map(
+          (player) => `${player.player_id}-${player.fifa_version}`
+        )
+      );
+
+      const newPlayers = chunk.filter((player) => {
+        const key = `${player.player_id}-${player.fifa_version}`;
+        return !existingKeys.has(key);
+      });
+
+      const result = await Player.bulkCreate(newPlayers, {
         fields: playerAttributes,
       });
 
@@ -88,28 +155,10 @@ const importPlayers = async (file) => {
       totalCreated,
     };
   } catch (error) {
-    console.error("Problemas al importar jugadores: ", error);
-    throw new Error("Problemas al importar jugadores");
+    console.error("ERROR:", error.message);
+    throw new Error("Problemas al importar los players a la base de datos");
   } finally {
     await fs.unlink(file.path);
-  }
-};
-
-const updatePlayer = async (playerId, fifaVersion, newPlayerUpdated) => {
-  try {
-    await getPlayerById(playerId, fifaVersion);
-    await Player.update(newPlayerUpdated, {
-      where: { player_id: parseInt(playerId), fifa_version: fifaVersion },
-      returning: true,
-    });
-    const playerUpdated = await getPlayerById(
-      newPlayerUpdated.player_id,
-      newPlayerUpdated.fifa_version
-    );
-    return playerUpdated;
-  } catch (error) {
-    console.error("Problemas al actualizar player:", error);
-    throw new Error("Problemas al actualizar el player");
   }
 };
 
@@ -144,17 +193,8 @@ const exportPlayers = async (params) => {
     const csv = json2csvParser.parse(jsonData);
     return csv;
   } catch (error) {
-    console.error("Error al exportar datos a CSV:", error);
-    throw new Error('"Error al exportar datos a CSV');
-  }
-};
-
-const deletePlayer = async (playerId) => {
-  try {
-    await getPlayerById(playerId);
-    return await Player.destroy({ where: { id: parseInt(playerId) } });
-  } catch (error) {
-    throw error;
+    console.error("ERROR:", error.message);
+    throw new Error('"Problemas al exportar datos a CSV');
   }
 };
 

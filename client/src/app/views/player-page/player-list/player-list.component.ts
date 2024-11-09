@@ -1,7 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { PlayerEditComponent } from '../player-edit/player-edit.component';
 import { CommonModule } from '@angular/common';
-import { RouterLink } from '@angular/router';
 import { PlayerDetailComponent } from '../player-detail/player-detail.component';
 import { AuthService } from '../../../core/services/auth.service';
 import { debounceTime, distinctUntilChanged, finalize } from 'rxjs';
@@ -17,7 +16,6 @@ import { UtilsService } from '../../../core/services/utils.service';
   imports: [
     PlayerEditComponent,
     CommonModule,
-    RouterLink,
     PlayerDetailComponent,
     ReactiveFormsModule,
   ],
@@ -146,8 +144,14 @@ export class PlayerListComponent implements OnInit {
     this.apiService.updatePlayer(this.originalPlayer, updatedPlayer).subscribe({
       next: (res: any) => {
         const updatedPlayerData = res.data;
-        console.log(updatedPlayerData);
-        this.getAllPlayers();
+        const index = this.playersList.findIndex(
+          (p) =>
+            p.player_id === this.originalPlayer.player_id &&
+            p.fifa_version === this.originalPlayer.fifa_version
+        );
+        if (index !== -1) {
+          this.playersList[index] = updatedPlayerData;
+        }
 
         this.closeModal('editModal');
       },
@@ -164,24 +168,34 @@ export class PlayerListComponent implements OnInit {
     });
   }
 
-  deletePlayer(playerId: any) {
+  deletePlayer(player: any) {
     this.isLoading = true;
     this.error = null;
 
-    if (playerId !== null) {
-      this.apiService.deletePlayer(playerId).subscribe({
-        next: (res: any) => {
-          this.getAllPlayers();
-          this.closeModal('confirmDeleteModal');
-        },
-        error: (error) => {
-          this.error = this.utilsService.handleError(error, 'delete players');
-        },
-        complete: () => {
-          this.isLoading = false;
-        },
-      });
-    }
+    this.apiService.deletePlayer(player).subscribe({
+      next: (res: any) => {
+        const playerDeleted = res.data;
+        const index = this.playersList.findIndex(
+          (p) =>
+            p.player_id === playerDeleted.player_id &&
+            p.fifa_version === playerDeleted.fifa_version
+        );
+        if (index !== -1) {
+          this.playersList.splice(index, 1);
+        }
+        this.closeModal('confirmDeleteModal');
+      },
+      error: (error) => {
+        const errorMessage = error?.message || 'Error desconocido';
+        this.error = this.utilsService.handleError(
+          errorMessage,
+          'deleted player'
+        );
+      },
+      complete: () => {
+        this.isLoading = false;
+      },
+    });
   }
 
   changePage(page: number): void {

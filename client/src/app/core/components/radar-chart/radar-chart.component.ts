@@ -22,7 +22,7 @@ export class RadarChartComponent implements OnChanges {
 
   public radarChartOptions: ChartConfiguration['options'] = {
     responsive: true,
-    maintainAspectRatio: false, // Asegúrate de tener esto en false para permitir que el gráfico se ajuste.
+    maintainAspectRatio: false,
     scales: {
       r: {
         angleLines: {

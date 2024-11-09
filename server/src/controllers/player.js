@@ -1,4 +1,5 @@
 const { playerService } = require("../services");
+const handleError = require("../utils/errorHandler");
 
 const getPlayers = async (req, res) => {
   const params = req.query;
@@ -16,11 +17,7 @@ const getPlayers = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error("Error durante la peticion de players:", error);
-    res.status(500).json({
-      status: "error",
-      message: error.message || "Error interno del servidor",
-    });
+    handleError(res, error);
   }
 };
 
@@ -31,23 +28,50 @@ const getPlayerById = async (req, res) => {
     const player = await playerService.getPlayerById(playerId, fifaVersion);
     res.status(200).json({ status: "ok", data: player });
   } catch (error) {
-    console.error("Error durante la peticion del player:", error);
-    res.status(404).json({
-      status: "error",
-      message: error.message || "Error interno del servidor",
+    handleError(res, error);
+  }
+};
+
+const updatePlayer = async (req, res) => {
+  const playerId = req.params.id;
+  const fifaVersion = req.params.v;
+  const newPlayerUpdated = req.body;
+  try {
+    const playerUpdated = await playerService.updatePlayer(
+      playerId,
+      fifaVersion,
+      newPlayerUpdated
+    );
+    res.status(200).json({
+      status: "ok",
+      data: playerUpdated,
+      message: `Se actualizo correctamente el player: ${playerUpdated.long_name}`,
     });
+  } catch (error) {
+    handleError(res, error);
+  }
+};
+
+const deletePlayer = async (req, res) => {
+  const playerId = req.params.id;
+  const fifaVersion = req.params.v;
+  try {
+    const playerDeleted = await playerService.deletePlayer(
+      playerId,
+      fifaVersion
+    );
+    res.status(200).json({
+      status: "ok",
+      data: playerDeleted,
+      message: `Se elimino correctamente el player: ${playerDeleted.long_name}`,
+    });
+  } catch (error) {
+    handleError(res, error);
   }
 };
 
 const importPlayers = async (req, res) => {
   const file = req.file;
-  if (!file) {
-    return res.status(400).json({
-      status: "error",
-      message: "No se ha subido ningún archivo",
-    });
-  }
-
   try {
     const { totalCreated, totalProcessed } = await playerService.importPlayers(
       file
@@ -61,40 +85,25 @@ const importPlayers = async (req, res) => {
       message: `Importación completada. ${totalCreated} jugadores creados de ${totalProcessed} procesados.`,
     });
   } catch (error) {
-    console.error("Error durante la importación de jugadores:", error);
-    res.status(500).json({
-      status: "error",
-      message: error.message || "Hubo un problema al procesar el archivo.",
-    });
+    handleError(res, error);
   }
 };
 
-const updatePlayer = async (req, res) => {
-  const playerId = req.params.id;
-  const fifaVersion = req.params.v;
-  const newPlayerUpdated = req.body;
-  console.log(playerId, fifaVersion, newPlayerUpdated);
-
+const exportPlayers = async (req, res) => {
+  const filters = req.query;
   try {
-    const playerUpdated = await playerService.updatePlayer(
-      playerId,
-      fifaVersion,
-      newPlayerUpdated
-    );
-    res.status(200).json({
-      status: "ok",
-      data: {
-        playerUpdated,
-      },
-      message: `Se actualizo correctamente el player: ${playerUpdated.long_name}`,
-    });
+    const csvData = await playerService.exportPlayers(filters);
+    res.status(200).send(csvData);
   } catch (error) {
-    console.error("Error durante la actualizacion del player:", error);
-    res.status(500).json({
-      status: "error",
-      message: error.message || "Error interno del servidor",
-    });
+    handleError(res, error);
   }
 };
 
-module.exports = { getPlayers, getPlayerById, importPlayers, updatePlayer };
+module.exports = {
+  getPlayers,
+  getPlayerById,
+  importPlayers,
+  updatePlayer,
+  deletePlayer,
+  exportPlayers,
+};
