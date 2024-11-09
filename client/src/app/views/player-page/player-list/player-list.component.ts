@@ -9,6 +9,7 @@ import { ApiService } from '../../../core/services/api.service';
 import { SearchService } from '../../../core/services/search.service';
 import * as bootstrap from 'bootstrap';
 import { UtilsService } from '../../../core/services/utils.service';
+import { SocketService } from '../../../core/services/socket.service';
 
 @Component({
   selector: 'app-player-list',
@@ -25,7 +26,7 @@ import { UtilsService } from '../../../core/services/utils.service';
 export class PlayerListComponent implements OnInit {
   isLoggedIn = false;
   isLoading: boolean = false;
-  error: string | null = null;
+  error: any | null = null;
   sortBy: string = '';
   playersList: any[] = [];
   selectedPlayer: any;
@@ -35,19 +36,27 @@ export class PlayerListComponent implements OnInit {
   totalPages: number = 1;
   searchTerm: string = '';
   originalPlayer: any = null;
-  private playerCache: { [cacheKey: string]: any } = {};
 
   constructor(
     private apiService: ApiService,
     private authService: AuthService,
     private searchService: SearchService,
-    private utilsService: UtilsService
+    private utilsService: UtilsService,
+    private socketService: SocketService
   ) {}
 
   ngOnInit() {
     this.isLoggedIn = this.authService.isLoggedIn();
     this.setupSearchListener();
     this.getAllPlayers();
+    this.socketService.onPlayerUpdated((updatedPlayer) => {
+      console.log('Usuario actualizado', updatedPlayer);
+      this.getAllPlayers();
+    });
+    this.socketService.onPlayerDeleted((playerDeleted) => {
+      console.log('Usuario eliminado', playerDeleted);
+      this.getAllPlayers();
+    });
   }
 
   setupSearchListener() {
@@ -101,8 +110,8 @@ export class PlayerListComponent implements OnInit {
 
     const cacheKey = `${player.player_id}-${player.fifa_version}-${player.updatedAt}`;
 
-    if (this.playerCache[cacheKey]) {
-      this.selectedPlayer = this.playerCache[cacheKey];
+    if (this.utilsService.isCacheValid(cacheKey)) {
+      this.selectedPlayer = this.utilsService.getPlayerFromCache(cacheKey);
       this.isLoading = false;
       return;
     }
@@ -116,11 +125,14 @@ export class PlayerListComponent implements OnInit {
       )
       .subscribe({
         next: (res: any) => {
-          this.selectedPlayer = res.data;
-          this.playerCache[cacheKey] = this.selectedPlayer;
+          setTimeout(() => {
+            this.selectedPlayer = res.data;
+            this.utilsService.setPlayerInCache(cacheKey, this.selectedPlayer);
+          }, 3000);
         },
-        error: (error) => {
-          const errorMessage = error?.message || 'Error desconocido';
+        error: (err) => {
+          console.log(err.error);
+          const errorMessage = err?.error || 'Error desconocido';
           this.error = this.utilsService.handleError(
             errorMessage,
             'fetching this player'
@@ -144,6 +156,7 @@ export class PlayerListComponent implements OnInit {
     this.apiService.updatePlayer(this.originalPlayer, updatedPlayer).subscribe({
       next: (res: any) => {
         const updatedPlayerData = res.data;
+
         const index = this.playersList.findIndex(
           (p) =>
             p.player_id === this.originalPlayer.player_id &&
@@ -156,6 +169,8 @@ export class PlayerListComponent implements OnInit {
         this.closeModal('editModal');
       },
       error: (error) => {
+        console.log(error.message);
+
         const errorMessage = error?.message || 'Error desconocido';
         this.error = this.utilsService.handleError(
           errorMessage,
@@ -221,15 +236,22 @@ export class PlayerListComponent implements OnInit {
         modal.hide();
       }
     }
+    this.isLoading = false;
+    this.selectedPlayer = null;
   }
 
-  openModal(modalId, player) {
+  async openModal(modalId: string, player: any) {
     this.originalPlayer = JSON.parse(JSON.stringify(player));
-    this.getPlayerById(player);
-    const modalElement = document.getElementById(modalId);
-    if (modalElement) {
-      const modal = new bootstrap.Modal(modalElement);
-      modal.show();
+    try {
+      const modalElement = document.getElementById(modalId);
+      if (modalElement) {
+        const modal = new bootstrap.Modal(modalElement);
+        modal.show();
+      }
+      await this.getPlayerById(player);
+    } catch (error) {
+      console.error('Error loading player details:', error);
+      this.error = 'Error loading player details';
     }
   }
 }

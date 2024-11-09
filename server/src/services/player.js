@@ -4,11 +4,6 @@ const { Player } = require("../models");
 const getPlayers = async (params) => {
   try {
     const players = await playerProvider.getPlayers(params);
-    if (players.totalItems === 0) {
-      const error = new Error("No se encontraron players en la base de datos");
-      error.status = 404;
-      throw error;
-    }
     return players;
   } catch (error) {
     throw error;

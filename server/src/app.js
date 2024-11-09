@@ -4,6 +4,7 @@ const { playerRouter } = require("./routes");
 const { initializeDatabase } = require("./config/db");
 const cors = require("cors");
 const bodyParser = require("body-parser");
+const { socketService } = require("./services");
 
 const app = express();
 app.use(bodyParser.json({ limit: "1mb" }));
@@ -17,11 +18,12 @@ app.use(
 );
 
 initializeDatabase().then(() => {
-  app.listen(process.env.SERVER_PORT, () => {
+  const server = app.listen(process.env.SERVER_PORT, () => {
     console.log(
       `Server listening on ${process.env.SERVER_HTTP}:${process.env.SERVER_PORT}`
     );
   });
+  socketService.initializeSocketServer(server);
 });
 
 app.use(`${process.env.SERVER_NAME}/player`, playerRouter);

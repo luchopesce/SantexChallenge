@@ -11,8 +11,9 @@ import { RadarChartComponent } from '../../../core/components/radar-chart/radar-
 })
 export class PlayerDetailComponent {
   @Input() player: any;
+  @Input() error: any;
+  @Input() loading: boolean = false;
   @Output() close = new EventEmitter<void>();
-  loading: boolean = false;
 
   onClose() {
     this.close.emit();
