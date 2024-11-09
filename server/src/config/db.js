@@ -9,7 +9,7 @@ const sequelize = new Sequelize(
     dialect: "mysql",
     logging: (msg) => {
       if (msg.includes("SELECT")) {
-        console.log(`[SQL SELECT] ${msg.slice(0, 80)}...`); // Log corto solo para SELECT
+        console.log(`[SQL SELECT] ${msg.slice(0, 80)}...`); 
       } else {
         console.log(`[SQL] ${msg}`);
       }
@@ -18,12 +18,9 @@ const sequelize = new Sequelize(
 );
 
 async function initializeDatabase() {
-  try {
-    // Prueba la conexión
+  try {                
     await sequelize.authenticate();
     console.log("Conexión a MySQL establecida con éxito.");
-
-    // Sincroniza los modelos con la base de datos
     await sequelize.sync({ force: false });
     console.log("Modelos sincronizados con la base de datos.");
   } catch (error) {

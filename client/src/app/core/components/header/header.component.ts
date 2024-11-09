@@ -18,7 +18,7 @@ export class HeaderComponent implements OnInit {
 
   onSearchInputChange(event: Event): void {
     const input = event.target as HTMLInputElement;
-    this.searchService.changeSearchTerm(input.value); // Envía el término de búsqueda al servicio
+    this.searchService.changeSearchTerm(input.value);
   }
 
   ngOnInit() {

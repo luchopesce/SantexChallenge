@@ -40,7 +40,6 @@ export class ApiService {
   }
 
   updatePlayer(originalPlayer: any, updatedPlayer: any): Observable<any> {
-    console.log(originalPlayer);
     const playerId = originalPlayer.player_id;
     const fifaVersion = originalPlayer.fifa_version;
     return this.http.put(
@@ -49,8 +48,10 @@ export class ApiService {
     );
   }
 
-  deletePlayer(playerId: any): Observable<any> {
-    return this.http.delete(`${this.apiUrl}/player/${playerId}`);
+  deletePlayer(player: any): Observable<any> {
+    const playerId = player.player_id;
+    const fifaVersion = player.fifa_version;
+    return this.http.delete(`${this.apiUrl}/player/${playerId}/${fifaVersion}`);
   }
 
   importCSV(fileData: FormData): Observable<any> {

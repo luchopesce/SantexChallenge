@@ -29,8 +29,8 @@
       <label
         class="btn btn-sm btn-outline-secondary"
         for="fileInput"
-        [class.disabled]="isImporting"
-        [attr.disabled]="isImporting ? true : null"
+        [class.disabled]="isImporting || isExporting"
+        [attr.disabled]="isImporting || isExporting ? true : null"
         style="display: inline-flex; align-items: center"
       >
         {{ isImporting ? "Importando" : "Importar" }}
@@ -44,18 +44,24 @@
       <input
         type="file"
         (change)="importCSV($event)"
-        [disabled]="isImporting"
+        [disabled]="isImporting || isExporting"
         id="fileInput"
         accept=".csv"
         style="display: none"
       />
 
       <button
+        style="display: inline-flex; align-items: center"
         (click)="exportCSV()"
         class="btn btn-sm btn-outline-secondary"
-        [disabled]="isExporting"
+        [disabled]="isExporting || isImporting"
       >
-        Exportar CSV
+        {{ isExporting ? "Exportando " : "Exportar CSV" }}
+        <div
+          *ngIf="isExporting"
+          class="spinner-border spinner-border-sm ml-2"
+          role="status"
+        ></div>
       </button>
     </div>
   </div>
