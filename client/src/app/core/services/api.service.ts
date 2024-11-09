@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
 
 @Injectable({
@@ -34,12 +34,15 @@ export class ApiService {
   }
 
   getById(player: any): Observable<any> {
-    const playerId = player.player_id;
-    const fifaVersion = player.fifa_version;
+    const playerId = player?.player_id || null;
+    const fifaVersion = player?.fifa_version || null;
+    console.log(fifaVersion);
+
     return this.http.get(`${this.apiUrl}/player/${playerId}/${fifaVersion}`);
   }
 
   updatePlayer(originalPlayer: any, updatedPlayer: any): Observable<any> {
+    console.log(this.apiUrl);
     const playerId = originalPlayer.player_id;
     const fifaVersion = originalPlayer.fifa_version;
     return this.http.put(

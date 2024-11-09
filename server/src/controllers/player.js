@@ -1,4 +1,4 @@
-const { playerService } = require("../services");
+const { playerService, socketService } = require("../services");
 const handleError = require("../utils/errorHandler");
 
 const getPlayers = async (req, res) => {
@@ -42,6 +42,7 @@ const updatePlayer = async (req, res) => {
       fifaVersion,
       newPlayerUpdated
     );
+    socketService.emitPlayerUpdated(playerUpdated);
     res.status(200).json({
       status: "ok",
       data: playerUpdated,
@@ -60,6 +61,7 @@ const deletePlayer = async (req, res) => {
       playerId,
       fifaVersion
     );
+    socketService.emitPlayerDeleted(playerDeleted);
     res.status(200).json({
       status: "ok",
       data: playerDeleted,

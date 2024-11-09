@@ -117,13 +117,17 @@
 </div>
 
 <app-player-edit
+  [loading]="isLoading"
   [player]="selectedPlayer"
+  [error]="error"
   (close)="closeModal('editModal')"
-  (save)="updatePlayer(selectedPlayer)"
+  (save)="updatePlayer($event)"
 >
 </app-player-edit>
 
 <app-player-detail
+  [loading]="isLoading"
+  [error]="error"
   [player]="selectedPlayer"
   (close)="closeModal('detailModal')"
 ></app-player-detail>
@@ -138,7 +142,9 @@
   <div class="modal-dialog">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title" id="confirmDeleteModalLabel">Confirm Delete</h5>
+        <h5 *ngIf="!error" class="modal-title" id="confirmDeleteModalLabel">
+          Confirm Delete
+        </h5>
         <button
           type="button"
           class="btn-close"
@@ -146,14 +152,40 @@
           aria-label="Close"
         ></button>
       </div>
-      <div class="modal-body">Are you sure you want to delete this player?</div>
+      <div class="modal-body">
+        <div *ngIf="error" class="alert alert-danger" role="alert">
+          {{ error }}
+        </div>
+        <ng-container *ngIf="!error">
+          <ng-container *ngIf="!selectedPlayer">
+            <div class="text-center">
+              <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+              </div>
+              <p>Esperando...</p>
+            </div>
+          </ng-container>
+
+          <ng-container *ngIf="!isLoading && selectedPlayer">
+            Are you sure you want to delete this player:
+            {{ selectedPlayer.long_name }}?
+          </ng-container>
+        </ng-container>
+      </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+        <button
+          (click)="closeModal(selectedPlayer)"
+          type="button"
+          class="btn btn-secondary"
+          data-bs-dismiss="modal"
+        >
           Cancel
         </button>
         <button
+          *ngIf="!error"
           type="button"
           class="btn btn-danger"
+          [disabled]="isLoading || !selectedPlayer"
           (click)="deletePlayer(selectedPlayer)"
         >
           Delete
