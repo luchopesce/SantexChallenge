@@ -61,6 +61,17 @@ const getPlayerById = async (playerId, fifaVersion) => {
   }
 };
 
+const getPlayerHistory = async (playerId) => {
+  const parsedPlayerId = parseInt(playerId);
+  try {
+    const playerHistory = await playerProvider.getPlayerHistory(parsedPlayerId);
+
+    return playerHistory;
+  } catch (error) {
+    throw error;
+  }
+};
+
 const updatePlayer = async (playerId, fifaVersion, newPlayerUpdated) => {
   const parsedPlayerId = parseInt(playerId);
 
@@ -153,4 +164,5 @@ module.exports = {
   deletePlayer,
   importPlayers,
   createPlayer,
+  getPlayerHistory,
 };

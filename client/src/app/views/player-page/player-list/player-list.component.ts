@@ -36,6 +36,7 @@ export class PlayerListComponent implements OnInit, OnDestroy {
   sortBy: string = '';
   sortDirection: 'asc' | 'desc' = 'asc';
   playersList: any[] = [];
+  historyPlayer: any[] = [];
   selectedPlayer: any;
   totalResults: number = 0;
   currentPage: number = 1;
@@ -175,6 +176,22 @@ export class PlayerListComponent implements OnInit, OnDestroy {
     });
   }
 
+  private getPlayerHistory(playerId: any) {
+    this.setLoadingState(true);
+    this.apiService.getPlayerHistory(playerId).subscribe({
+      next: (res: any) => {
+        this.historyPlayer = res.data;
+        console.log(this.historyPlayer);
+      },
+      error: (error) => {
+        this.handleError(error, 'fetching this player');
+      },
+      complete: () => {
+        this.setLoadingState(false);
+      },
+    });
+  }
+
   updatePlayer(updatedPlayer: any) {
     this.setLoadingState(true);
     setTimeout(() => {
@@ -242,6 +259,7 @@ export class PlayerListComponent implements OnInit, OnDestroy {
         modal.show();
       }
       await this.getPlayerById(player);
+      await this.getPlayerHistory(player.player_id);
     } catch (error) {
       this.utilsService.handleError(error, 'in open modal');
     }

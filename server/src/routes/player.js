@@ -7,6 +7,7 @@ const { validationMiddleware } = require("../middleware");
 const { playerValidator } = require("../validators");
 
 router.get("/", playerController.getPlayers);
+router.get("/history/:id", playerController.getPlayerHistory);
 router.get(
   "/:id/:v",
   validationMiddleware(playerValidator),

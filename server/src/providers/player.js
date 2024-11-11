@@ -67,6 +67,38 @@ const getPlayerById = async (playerId, fifaVersion) => {
   }
 };
 
+const getPlayerHistory = async (playerId) => {
+  try {
+    const players = await Player.findAll({
+      where: {
+        player_id: playerId,
+      },
+      order: [["fifa_version", "ASC"]],
+    });
+
+    const playerHistory = players.map((player) => ({
+      version: player.fifa_version,
+      skills: {
+        pace: player.pace,
+        shooting: player.shooting,
+        passing: player.passing,
+        dribbling: player.dribbling,
+        defending: player.defending,
+        physic: player.physic,
+      },
+    }));
+
+    if (playerHistory.length > 0) {
+      return playerHistory;
+    } else {
+      throw new Error("No se encontraron jugadores con ese ID");
+    }
+  } catch (error) {
+    console.error("ERROR:", error.message);
+    throw new Error("Problemas al obtener el historial del jugador");
+  }
+};
+
 const createPlayer = async (newPlayer) => {
   try {
     const newPlayerCreated = await Player.create(newPlayer);
@@ -222,4 +254,5 @@ module.exports = {
   deletePlayer,
   importPlayers,
   createPlayer,
+  getPlayerHistory,
 };
