@@ -12,6 +12,7 @@ const getPlayers = async (params) => {
     where: {},
     limit,
     offset,
+    order: [],
   };
   if (params.searchTerm) {
     options.where = {
@@ -29,6 +30,11 @@ const getPlayers = async (params) => {
     if (params[attr]) {
       options.where[attr] = { [Op.like]: `%${params[attr]}%` };
     }
+  }
+
+  if (params.sortBy && playerAttributes.includes(params.sortBy)) {
+    const sortDirection = params.sortDirection === "desc" ? "DESC" : "ASC";
+    options.order.push([params.sortBy, sortDirection]);
   }
 
   try {
@@ -58,6 +64,16 @@ const getPlayerById = async (playerId, fifaVersion) => {
   } catch (error) {
     console.error("ERROR:", error.message);
     throw new Error("Problemas al obtener el player desde la base de datos");
+  }
+};
+
+const createPlayer = async (newPlayer) => {
+  try {
+    const newPlayerCreated = await Player.create(newPlayer);
+    return newPlayerCreated;
+  } catch (error) {
+    console.error("ERROR:", error.message);
+    throw new Error("Problemas al crear el player desde la base de datos");
   }
 };
 
@@ -205,4 +221,5 @@ module.exports = {
   updatePlayer,
   deletePlayer,
   importPlayers,
+  createPlayer,
 };

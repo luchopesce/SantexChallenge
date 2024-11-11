@@ -12,6 +12,9 @@ router.get(
   validationMiddleware(playerValidator),
   playerController.getPlayerById
 );
+
+router.post("/", playerController.createPlayer);
+
 router.post(
   "/import-csv",
   upload.single("file"),

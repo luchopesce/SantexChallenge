@@ -1,0 +1,109 @@
+<div
+  class="modal fade"
+  id="createPlayerModal"
+  tabindex="-1"
+  aria-labelledby="createPlayerModalLabel"
+  aria-hidden="true"
+>
+  <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header d-flex flex-column">
+        <div class="d-flex justify-content-between w-100">
+          <h5 class="modal-title" id="createPlayerModalLabel">
+            <i class="bi bi-person-plus-fill me-2"></i>
+            Create Player
+          </h5>
+
+          <button
+            type="button"
+            class="btn-close"
+            (click)="onClose()"
+            aria-label="Close"
+          ></button>
+        </div>
+
+        <button
+          *ngIf="!loading"
+          type="button"
+          class="btn btn-success mt-2"
+          (click)="matchRandom()"
+          aria-label="Generate Random Match"
+        >
+          Generate Random Match
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <div *ngIf="!form || loading" class="text-center">
+          <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+          </div>
+          <p>Esperando...</p>
+        </div>
+
+        <ng-container *ngIf="form && !loading">
+          <form [formGroup]="form">
+            <div *ngFor="let field of fieldsForm" class="mb-3">
+              <label [for]="field.key" class="form-label">{{
+                field.label
+              }}</label>
+
+              <input
+                type="text"
+                class="form-control"
+                [id]="field.key"
+                [formControlName]="field.key"
+                [placeholder]="field.placeholder"
+                [class.is-invalid]="
+                  form.get(field.key)?.invalid && form.get(field.key)?.touched
+                "
+              />
+
+              <div
+                *ngIf="
+                  form.get(field.key)?.invalid && form.get(field.key)?.touched
+                "
+                class="invalid-feedback"
+              >
+                <div *ngIf="form.get(field.key)?.hasError('integer')">
+                  {{ form.get(field.key)?.errors?.['integer'] }}
+                </div>
+
+                <div *ngIf="form.get(field.key)?.hasError('minlength')">
+                  Mínimo 3 caracteres
+                </div>
+                <div *ngIf="form.get(field.key)?.hasError('required')">
+                  Ingrese un valor
+                </div>
+                <div *ngIf="form.get(field.key)?.hasError('min')">
+                  Valor debe ser mayor a 0
+                </div>
+                <div *ngIf="form.get(field.key)?.hasError('max')">
+                  Valor debe ser menor a 100
+                </div>
+              </div>
+            </div>
+          </form>
+        </ng-container>
+      </div>
+
+      <div
+        class="modal-footer p-3 d-flex justify-content-between align-items-center"
+      >
+        <div class="ms-auto d-flex">
+          <button type="button" class="btn btn-secondary" (click)="onClose()">
+            Close
+          </button>
+          <button
+            type="button"
+            class="btn btn-primary ms-2"
+            (click)="onSave()"
+            [disabled]="!form.valid || loading"
+          >
+            Save Player
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

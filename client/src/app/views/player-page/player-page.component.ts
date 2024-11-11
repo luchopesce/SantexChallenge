@@ -1,19 +1,24 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { PlayerListComponent } from './player-list/player-list.component';
 import { ApiService } from '../../core/services/api.service';
 import { SearchService } from '../../core/services/search.service';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../core/services/auth.service';
 import { UtilsService } from '../../core/services/utils.service';
+import * as bootstrap from 'bootstrap';
+import { PlayerCreateComponent } from './player-create/player-create.component';
 
 @Component({
   selector: 'app-player-page',
   standalone: true,
-  imports: [PlayerListComponent, CommonModule],
+  imports: [CommonModule, PlayerListComponent, PlayerCreateComponent],
   templateUrl: './player-page.component.html',
   styleUrls: ['./player-page.component.scss'],
 })
 export class PlayerPageComponent implements OnInit {
+  @ViewChild(PlayerCreateComponent)
+  playerCreateComponent!: PlayerCreateComponent;
+
   currentSearchTerm: string = '';
   isExporting: boolean = false;
   isImporting: boolean = false;
@@ -21,6 +26,8 @@ export class PlayerPageComponent implements OnInit {
   toastMessage: string = '';
   toastSize: string = '';
   isLoggedIn = false;
+  isLoading: boolean = false;
+  error: any | null = null;
 
   constructor(
     private searchService: SearchService,
@@ -35,6 +42,40 @@ export class PlayerPageComponent implements OnInit {
 
   ngOnInit() {
     this.isLoggedIn = this.authService.isLoggedIn();
+  }
+
+  createPlayer(newPlayer: any) {
+    this.isLoading = true;
+
+    setTimeout(() => {
+      this.apiService.createPlayer(newPlayer).subscribe({
+        next: (res: any) => {
+          this.utilsService.showToastWithMessage(
+            this,
+            res.message,
+            'success',
+            5000
+          );
+
+          this.closeModalCreate();
+        },
+        error: (error) => {
+          this.error = error.error.message
+            ? error.error.message
+            : 'Problemas internos';
+          this.utilsService.showToastWithMessage(
+            this,
+            `Error: ${this.error}`,
+            'danger',
+            5000
+          );
+          this.isLoading = false;
+        },
+        complete: () => {
+          this.isLoading = false;
+        },
+      });
+    }, 2000);
   }
 
   exportCSV() {
@@ -65,12 +106,12 @@ export class PlayerPageComponent implements OnInit {
         );
       },
       error: (error) => {
-        console.error('Error al exportar CSV:', error.message);
         this.utilsService.showToastWithMessage(
           this,
-          `Error: ${error.message}`,
+          `Error: ${error.error.message}`,
           'danger'
         );
+        this.isExporting = false;
       },
       complete: () => {
         this.isExporting = false;
@@ -114,13 +155,30 @@ export class PlayerPageComponent implements OnInit {
       error: (error) => {
         this.utilsService.showToastWithMessage(
           this,
-          `Error: ${error.message}`,
+          `Error: ${error.error.message}`,
           'danger'
         );
+        this.isImporting = false;
       },
       complete: () => {
         this.isImporting = false;
       },
     });
+  }
+
+  openModalCreate() {
+    this.playerCreateComponent.resetForm();
+    const modalElement = document.getElementById('createPlayerModal');
+    if (modalElement) {
+      const modal = new bootstrap.Modal(modalElement);
+      modal.show();
+    }
+  }
+  closeModalCreate() {
+    const modalElement = document.getElementById('createPlayerModal');
+    const modalInstance = modalElement
+      ? bootstrap.Modal.getInstance(modalElement)
+      : null;
+    modalInstance?.hide();
   }
 }

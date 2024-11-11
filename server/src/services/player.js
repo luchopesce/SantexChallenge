@@ -10,6 +10,29 @@ const getPlayers = async (params) => {
   }
 };
 
+const createPlayer = async (newPlayer) => {
+  const parsedPlayerId = parseInt(newPlayer.player_id);
+  try {
+    const playerExist = await playerProvider.getPlayerById(
+      parsedPlayerId,
+      newPlayer.fifa_version
+    );
+    if (playerExist) {
+      const error = new Error(
+        "Problemas con el ID / Fifa Version ingresado, deben ser unicos"
+      );
+      error.status = 400;
+      throw error;
+    }
+
+    const newPlayerCreated = await playerProvider.createPlayer(newPlayer);
+
+    return newPlayerCreated;
+  } catch (error) {
+    throw error;
+  }
+};
+
 const getPlayerById = async (playerId, fifaVersion) => {
   const parsedPlayerId = parseInt(playerId);
   try {
@@ -129,4 +152,5 @@ module.exports = {
   updatePlayer,
   deletePlayer,
   importPlayers,
+  createPlayer,
 };

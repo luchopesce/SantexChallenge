@@ -16,3 +16,13 @@ label.disabled {
   height: 1rem;
   border-width: 0.2em;
 }
+
+.btn-circle {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.btn-circle i {
+  font-size: 24px;
+}
