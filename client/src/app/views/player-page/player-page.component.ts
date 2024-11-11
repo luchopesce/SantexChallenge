@@ -7,11 +7,17 @@ import { AuthService } from '../../core/services/auth.service';
 import { UtilsService } from '../../core/services/utils.service';
 import * as bootstrap from 'bootstrap';
 import { PlayerCreateComponent } from './player-create/player-create.component';
+import { ToastComponent } from '../../core/components/toast/toast.component';
 
 @Component({
   selector: 'app-player-page',
   standalone: true,
-  imports: [CommonModule, PlayerListComponent, PlayerCreateComponent],
+  imports: [
+    CommonModule,
+    PlayerListComponent,
+    PlayerCreateComponent,
+    ToastComponent,
+  ],
   templateUrl: './player-page.component.html',
   styleUrls: ['./player-page.component.scss'],
 })
@@ -41,10 +47,21 @@ export class PlayerPageComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.isLoggedIn = this.authService.isLoggedIn();
+    this.authService.getAuthStatus().subscribe((isLoggedIn) => {
+      this.isLoggedIn = isLoggedIn;
+    });
   }
 
   createPlayer(newPlayer: any) {
+    if (!this.isLoggedIn) {
+      this.utilsService.showToastWithMessage(
+        this,
+        'Error: Debes estar logueado para crear un jugador.',
+        'danger'
+      );
+      return;
+    }
+
     this.isLoading = true;
 
     setTimeout(() => {
@@ -79,7 +96,7 @@ export class PlayerPageComponent implements OnInit {
   }
 
   exportCSV() {
-    if (!this.authService.isLoggedIn()) {
+    if (!this.isLoggedIn) {
       this.utilsService.showToastWithMessage(
         this,
         'Error: Debes estar logueado para descargar el archivo.',
@@ -120,7 +137,7 @@ export class PlayerPageComponent implements OnInit {
   }
 
   importCSV(event: any) {
-    if (!this.authService.isLoggedIn()) {
+    if (!this.isLoggedIn) {
       this.utilsService.showToastWithMessage(
         this,
         'Error: Debes estar logueado para importar un archivo.',
@@ -174,6 +191,7 @@ export class PlayerPageComponent implements OnInit {
       modal.show();
     }
   }
+
   closeModalCreate() {
     const modalElement = document.getElementById('createPlayerModal');
     const modalInstance = modalElement

@@ -30,6 +30,11 @@ export class SocketService {
     });
   }
 
+  onPlayerImport(callback: () => void): void {
+    this.socket.on('playerImport', () => {
+      callback();
+    });
+  }
   emitEvent(eventName: string, data: any): void {
     this.socket.emit(eventName, data);
   }

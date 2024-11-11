@@ -104,6 +104,17 @@
                   style="width: 100%; max-width: 600px; height: 50vh"
                 ></app-radar-chart>
               </div>
+
+              <div
+                *ngIf="historyPlayer.length > 1"
+                class="d-flex justify-content-center mt-4"
+              >
+                <app-line-chart
+                  [playerHistory]="historyPlayer"
+                  style="width: 100%; max-width: 600px; height: 50vh"
+                >
+                </app-line-chart>
+              </div>
             </ng-container>
 
             <ng-template #loadingContent>

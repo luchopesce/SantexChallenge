@@ -1,36 +1,61 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject } from 'rxjs';
+import { HttpClient } from '@angular/common/http';
+import { BehaviorSubject, Observable } from 'rxjs';
+import { tap } from 'rxjs/operators';
+import { Router } from '@angular/router';
+import { environment } from '../../../environments/environment';
 
 @Injectable({
   providedIn: 'root',
 })
 export class AuthService {
-  private loggedIn: boolean = false;
-  private authStatusSubject = new BehaviorSubject<boolean>(this.loggedIn);
+  private apiUrl = environment.apiUrl;
+  private authStatus = new BehaviorSubject<boolean>(this.hasToken());
 
-  constructor() {
-    const user = localStorage.getItem('user');
-    this.loggedIn = !!user;
-    this.authStatusSubject.next(this.loggedIn);
+  constructor(private http: HttpClient, private router: Router) {}
+
+  getAuthStatus(): Observable<boolean> {
+    return this.authStatus.asObservable();
   }
 
-  isLoggedIn(): boolean {
-    return this.loggedIn;
+  register(username: string, password: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}/auth/register`, {
+      username,
+      password,
+    });
   }
 
-  login() {
-    this.loggedIn = true;
-    localStorage.setItem('user', 'dummyUser');
-    this.authStatusSubject.next(this.loggedIn);
+  login(username: string, password: string): Observable<any> {
+    return this.http
+      .post<{ token: string }>(`${this.apiUrl}/auth/login`, {
+        username,
+        password,
+      })
+      .pipe(
+        tap((response) => {
+          if (response && response.token) {
+            this.setToken(response.token);
+          }
+        })
+      );
   }
 
-  logout() {
-    this.loggedIn = false;
-    localStorage.removeItem('user');
-    this.authStatusSubject.next(this.loggedIn);
+  private setToken(token: string): void {
+    localStorage.setItem('token', token);
+    this.authStatus.next(true);
   }
 
-  getAuthStatus() {
-    return this.authStatusSubject.asObservable();
+  getToken(): string | null {
+    return localStorage.getItem('token');
+  }
+
+  logout(): void {
+    localStorage.removeItem('token');
+    this.authStatus.next(false);
+    this.router.navigate(['/home']);
+  }
+
+  private hasToken(): boolean {
+    return this.getToken() !== null;
   }
 }

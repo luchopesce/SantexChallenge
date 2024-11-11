@@ -47,6 +47,16 @@ const getPlayerById = async (req, res) => {
   }
 };
 
+const getPlayerHistory = async (req, res) => {
+  const playerId = req.params.id;
+  try {
+    const playerHistory = await playerService.getPlayerHistory(playerId);
+    res.status(200).json({ status: "ok", data: playerHistory });
+  } catch (error) {
+    handleError(res, error);
+  }
+};
+
 const updatePlayer = async (req, res) => {
   const playerId = req.params.id;
   const fifaVersion = req.params.v;
@@ -93,6 +103,7 @@ const importPlayers = async (req, res) => {
     const { totalCreated, totalProcessed } = await playerService.importPlayers(
       file
     );
+    socketService.emitPlayerImport();
     res.status(200).json({
       status: "ok",
       data: {
@@ -124,4 +135,5 @@ module.exports = {
   deletePlayer,
   exportPlayers,
   createPlayer,
+  getPlayerHistory,
 };

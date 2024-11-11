@@ -16,6 +16,7 @@ import { SearchService } from '../../../core/services/search.service';
 import * as bootstrap from 'bootstrap';
 import { UtilsService } from '../../../core/services/utils.service';
 import { SocketService } from '../../../core/services/socket.service';
+import { ToastComponent } from '../../../core/components/toast/toast.component';
 
 @Component({
   selector: 'app-player-list',
@@ -25,6 +26,7 @@ import { SocketService } from '../../../core/services/socket.service';
     CommonModule,
     PlayerDetailComponent,
     ReactiveFormsModule,
+    ToastComponent,
   ],
   templateUrl: './player-list.component.html',
   styleUrls: ['./player-list.component.scss'],
@@ -36,6 +38,7 @@ export class PlayerListComponent implements OnInit, OnDestroy {
   sortBy: string = '';
   sortDirection: 'asc' | 'desc' = 'asc';
   playersList: any[] = [];
+  historyPlayer: any[] = [];
   selectedPlayer: any;
   totalResults: number = 0;
   currentPage: number = 1;
@@ -58,7 +61,9 @@ export class PlayerListComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit() {
-    this.isLoggedIn = this.authService.isLoggedIn();
+    this.authService.getAuthStatus().subscribe((isLoggedIn) => {
+      this.isLoggedIn = isLoggedIn;
+    });
     this.setupSearchListener();
     this.getAllPlayers();
     this.setupSocketListeners();
@@ -95,6 +100,7 @@ export class PlayerListComponent implements OnInit, OnDestroy {
         break;
     }
   }
+
   private setupSocketListeners() {
     this.socketService.onPlayerCreated((newPlayer) => {
       this.updatePlayersList(newPlayer, 'create');
@@ -106,6 +112,10 @@ export class PlayerListComponent implements OnInit, OnDestroy {
 
     this.socketService.onPlayerDeleted((deletedPlayer) => {
       this.updatePlayersList(deletedPlayer, 'delete');
+    });
+
+    this.socketService.onPlayerImport(() => {
+      this.getAllPlayers();
     });
   }
 
@@ -165,6 +175,21 @@ export class PlayerListComponent implements OnInit, OnDestroy {
           this.selectedPlayer = res.data;
           this.utilsService.setPlayerInCache(cacheKey, this.selectedPlayer);
         }, 1000);
+      },
+      error: (error) => {
+        this.handleError(error, 'fetching this player');
+      },
+      complete: () => {
+        this.setLoadingState(false);
+      },
+    });
+  }
+
+  private getPlayerHistory(playerId: any) {
+    this.setLoadingState(true);
+    this.apiService.getPlayerHistory(playerId).subscribe({
+      next: (res: any) => {
+        this.historyPlayer = res.data;
       },
       error: (error) => {
         this.handleError(error, 'fetching this player');
@@ -242,6 +267,7 @@ export class PlayerListComponent implements OnInit, OnDestroy {
         modal.show();
       }
       await this.getPlayerById(player);
+      await this.getPlayerHistory(player.player_id);
     } catch (error) {
       this.utilsService.handleError(error, 'in open modal');
     }

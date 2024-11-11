@@ -1,10 +1,11 @@
 const express = require("express");
 require("dotenv").config();
-const { playerRouter } = require("./routes");
+const { playerRouter, authRouter } = require("./routes");
 const { initializeDatabase } = require("./config/db");
 const cors = require("cors");
 const bodyParser = require("body-parser");
 const { socketService } = require("./services");
+const { authenticate } = require("./middleware");
 
 const app = express();
 app.use(bodyParser.json({ limit: "1mb" }));
@@ -26,4 +27,5 @@ initializeDatabase().then(() => {
   socketService.initializeSocketServer(server);
 });
 
-app.use(`${process.env.SERVER_NAME}/player`, playerRouter);
+app.use(`${process.env.SERVER_NAME}/player`, authenticate, playerRouter);
+app.use(`${process.env.SERVER_NAME}/auth`, authRouter);

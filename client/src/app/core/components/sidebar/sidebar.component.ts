@@ -45,8 +45,8 @@ export class SidebarComponent implements OnInit {
         : []),
       {
         icon: isLoggedIn ? 'bi-door-open' : 'bi-door-closed',
-        name: isLoggedIn ? 'Sign out' : 'Sign in',
-        route: isLoggedIn ? '/logout' : '/login',
+        name: isLoggedIn ? 'Log out' : 'Account',
+        route: isLoggedIn ? '/logout' : '/account',
       },
     ];
   }
@@ -54,7 +54,7 @@ export class SidebarComponent implements OnInit {
   onLogout() {
     if (confirm('¿Estás seguro de que deseas cerrar sesión?')) {
       this.authService.logout();
-      this.router.navigate(['/login']);
-    }
+      this.router.navigate(['/account']);
+    } else return;
   }
 }

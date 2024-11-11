@@ -54,6 +54,10 @@ export class ApiService {
     );
   }
 
+  getPlayerHistory(playerId: string): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/player/history/${playerId}`);
+  }
+
   deletePlayer(player: any): Observable<any> {
     const playerId = player.player_id;
     const fifaVersion = player.fifa_version;

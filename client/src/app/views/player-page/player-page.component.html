@@ -1,24 +1,10 @@
-<div class="toast-container position-fixed top-0 end-0 p-3" *ngIf="showToast">
-  <div class="toast show" role="alert" aria-live="assertive" aria-atomic="true">
-    <div class="toast-header">
-      <strong class="me-auto">Notificación</strong>
-      <button
-        type="button"
-        class="btn-close"
-        (click)="showToast = false"
-      ></button>
-    </div>
-    <div
-      class="toast-body"
-      [ngClass]="{
-        'text-success': toastSize === 'success',
-        'text-danger': toastSize === 'danger'
-      }"
-    >
-      {{ toastMessage }}
-    </div>
-  </div>
-</div>
+<app-toast
+  [showToast]="showToast"
+  [toastMessage]="toastMessage"
+  [toastSize]="toastSize"
+  (onClose)="showToast = false"
+>
+</app-toast>
 
 <div
   class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom"
