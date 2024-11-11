@@ -1,11 +1,25 @@
-const authMiddleware = (req, res, next) => {
-  const user = req.user;
-  if (!user) {
+const jwt = require("jsonwebtoken");
+require("dotenv").config();
+
+const authenticate = (req, res, next) => {
+  const asd = req.header("Authorization");
+  const token = req.header("Authorization")?.replace("Bearer ", "");
+
+  if (!token) {
     return res
       .status(401)
-      .json({ status: "error", message: "Login incorrect" });
+      .json({ message: "No se proporcionó token, acceso denegado" });
   }
-  next();
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    req.user = decoded;
+    next();
+  } catch (error) {
+    return res
+      .status(401)
+      .json({ message: "Token no válido o expirado, acceso denegado" });
+  }
 };
 
-module.exports = authMiddleware;
+module.exports = authenticate;

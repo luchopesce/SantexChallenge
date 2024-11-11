@@ -42,9 +42,16 @@ function emitPlayerCreated(playerCreated) {
   }
 }
 
+function emitPlayerImport() {
+  if (io) {
+    io.emit("playerImport");
+  }
+}
+
 module.exports = {
   initializeSocketServer,
   emitPlayerUpdated,
   emitPlayerDeleted,
   emitPlayerCreated,
+  emitPlayerImport,
 };

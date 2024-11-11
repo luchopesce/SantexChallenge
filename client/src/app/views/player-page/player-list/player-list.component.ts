@@ -16,6 +16,7 @@ import { SearchService } from '../../../core/services/search.service';
 import * as bootstrap from 'bootstrap';
 import { UtilsService } from '../../../core/services/utils.service';
 import { SocketService } from '../../../core/services/socket.service';
+import { ToastComponent } from '../../../core/components/toast/toast.component';
 
 @Component({
   selector: 'app-player-list',
@@ -25,6 +26,7 @@ import { SocketService } from '../../../core/services/socket.service';
     CommonModule,
     PlayerDetailComponent,
     ReactiveFormsModule,
+    ToastComponent,
   ],
   templateUrl: './player-list.component.html',
   styleUrls: ['./player-list.component.scss'],
@@ -59,7 +61,9 @@ export class PlayerListComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit() {
-    this.isLoggedIn = this.authService.isLoggedIn();
+    this.authService.getAuthStatus().subscribe((isLoggedIn) => {
+      this.isLoggedIn = isLoggedIn;
+    });
     this.setupSearchListener();
     this.getAllPlayers();
     this.setupSocketListeners();
@@ -96,6 +100,7 @@ export class PlayerListComponent implements OnInit, OnDestroy {
         break;
     }
   }
+
   private setupSocketListeners() {
     this.socketService.onPlayerCreated((newPlayer) => {
       this.updatePlayersList(newPlayer, 'create');
@@ -107,6 +112,10 @@ export class PlayerListComponent implements OnInit, OnDestroy {
 
     this.socketService.onPlayerDeleted((deletedPlayer) => {
       this.updatePlayersList(deletedPlayer, 'delete');
+    });
+
+    this.socketService.onPlayerImport(() => {
+      this.getAllPlayers();
     });
   }
 
@@ -181,7 +190,6 @@ export class PlayerListComponent implements OnInit, OnDestroy {
     this.apiService.getPlayerHistory(playerId).subscribe({
       next: (res: any) => {
         this.historyPlayer = res.data;
-        console.log(this.historyPlayer);
       },
       error: (error) => {
         this.handleError(error, 'fetching this player');

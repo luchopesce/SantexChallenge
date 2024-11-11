@@ -7,6 +7,10 @@ import {
 } from '@angular/core';
 import { ChartConfiguration, ChartData, ChartType } from 'chart.js';
 import { BaseChartDirective } from 'ng2-charts';
+import { Chart, Colors } from 'chart.js';
+
+// Registrar colores de Chart.js
+Chart.register(Colors);
 
 @Component({
   selector: 'app-line-chart',
@@ -30,7 +34,14 @@ export class LineChartComponent implements OnChanges {
       x: {
         title: {
           display: true,
-          text: 'Versiones',
+          text: 'Version',
+          color: '#911',
+          font: {
+            family: 'Comic Sans MS',
+            size: 20,
+            weight: 'bold',
+            lineHeight: 1.2,
+          },
         },
         ticks: {
           autoSkip: true,
@@ -39,7 +50,14 @@ export class LineChartComponent implements OnChanges {
       y: {
         title: {
           display: true,
-          text: 'Habilidades',
+          text: 'Valor de habilidad',
+          color: '#911',
+          font: {
+            family: 'Comic Sans MS',
+            size: 20,
+            weight: 'bold',
+            lineHeight: 1.2,
+          },
         },
         suggestedMin: 0,
         suggestedMax: 100,
@@ -65,36 +83,24 @@ export class LineChartComponent implements OnChanges {
       const firstVersion = this.playerHistory[0].skills;
       const skillNames = Object.keys(firstVersion);
 
-      // Configura las etiquetas (eje X)
       this.lineChartLabels = this.playerHistory.map((player) => player.version);
 
-      // Para cada habilidad, crea un dataset
-      const datasets = skillNames.map((skill) => {
-        const data = this.playerHistory!.map((player) => player.skills[skill]); // Aquí estamos forzando que no sea undefined usando '!'
+      const datasets = skillNames.map((skill, index) => {
+        const data = this.playerHistory!.map((player) => player.skills[skill]);
         return {
           label: skill,
           data,
           fill: false,
-          borderColor: this.getRandomColor(), // Puedes asignar colores aleatorios o estáticos
+
+          borderColor: undefined,
           tension: 0.1,
         };
       });
 
-      // Actualiza los datos del gráfico
       this.lineChartData = {
         labels: this.lineChartLabels,
         datasets,
       };
     }
-  }
-
-  // Función para generar colores aleatorios
-  private getRandomColor() {
-    const letters = '0123456789ABCDEF';
-    let color = '#';
-    for (let i = 0; i < 6; i++) {
-      color += letters[Math.floor(Math.random() * 16)];
-    }
-    return color;
   }
 }

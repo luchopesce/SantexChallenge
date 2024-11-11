@@ -1,4 +1,4 @@
-const { param, body } = require("express-validator");
+const { param } = require("express-validator");
 
 const playerValidations = [
   param("id")

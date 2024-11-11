@@ -1,12 +1,20 @@
+<app-toast
+  [showToast]="showToast"
+  [toastMessage]="toastMessage"
+  [toastSize]="toastSize"
+  (onClose)="showToast = false"
+></app-toast>
+
 <div
   class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom"
 >
-  <h1 class="h2">Login</h1>
+  <h1 class="h2">Account</h1>
 </div>
+
 <div class="login-container">
   <div class="form-signin w-100 m-auto">
-    <form (ngSubmit)="onLogin()">
-      <h1 class="h3 mb-3 fw-normal">Please sign in</h1>
+    <form (ngSubmit)="isLogin ? onLogin() : onRegister()" #loginForm="ngForm">
+      <h2 class="h3 mb-3 fw-normal">{{ isLogin ? "Login" : "Register" }}</h2>
 
       <div class="form-group form-floating">
         <input
@@ -17,8 +25,22 @@
           class="form-control"
           placeholder="name@example.com"
           required
+          minlength="3"
+          #usernameField="ngModel"
+          (ngModelChange)="clearError()"
         />
-        <label for="username">Email address</label>
+        <label for="username">User</label>
+        <div
+          *ngIf="usernameField.invalid && usernameField.touched"
+          class="text-danger my-3"
+        >
+          <small *ngIf="usernameField.errors?.['required']"
+            >Username is required.</small
+          >
+          <small *ngIf="usernameField.errors?.['minlength']"
+            >Username must be at least 3 characters long.</small
+          >
+        </div>
       </div>
       <div class="form-group form-floating">
         <input
@@ -29,24 +51,47 @@
           name="password"
           placeholder="Password"
           required
+          minlength="6"
+          #passwordField="ngModel"
+          (ngModelChange)="clearError()"
         />
         <label for="password">Password</label>
+
+        <div
+          *ngIf="passwordField.invalid && passwordField.touched"
+          class="text-danger"
+        >
+          <small *ngIf="passwordField.errors?.['required']"
+            >Password is required.</small
+          >
+          <small *ngIf="passwordField.errors?.['minlength']"
+            >Password must be at least 6 characters long.</small
+          >
+        </div>
+        <small *ngIf="error" class="text-danger">{{ error }}</small>
       </div>
 
-      <div class="form-check text-start my-3">
-        <input
-          class="form-check-input"
-          type="checkbox"
-          value="remember-me"
-          id="flexCheckDefault"
-        />
-        <label class="form-check-label" for="flexCheckDefault">
-          Remember me
-        </label>
+      <button
+        class="btn btn-primary w-100 my-3 py-2"
+        type="submit"
+        [disabled]="loginForm.invalid"
+      >
+        {{ isLogin ? "Sign In" : "Sign Up" }}
+      </button>
+      <div class="text-center">
+        <p *ngIf="isLogin">
+          Don't have an account?
+          <a class="link" (click)="toggleForm()">Register</a>
+        </p>
+        <p *ngIf="!isLogin">
+          Already have an account?
+          <a class="link" (click)="toggleForm()">Sign In</a>
+        </p>
       </div>
 
-      <button class="btn btn-primary w-100 py-2" type="submit">Sign in</button>
-      <p class="mt-5 mb-3 text-body-secondary">&copy; 2017–2024</p>
+      <p class="mt-5 mb-3 text-center text-body-secondary">
+        &copy;SantexAcademy 2024
+      </p>
     </form>
   </div>
 </div>

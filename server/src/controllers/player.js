@@ -103,6 +103,7 @@ const importPlayers = async (req, res) => {
     const { totalCreated, totalProcessed } = await playerService.importPlayers(
       file
     );
+    socketService.emitPlayerImport();
     res.status(200).json({
       status: "ok",
       data: {
