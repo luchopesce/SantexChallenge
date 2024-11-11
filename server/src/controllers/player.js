@@ -21,6 +21,21 @@ const getPlayers = async (req, res) => {
   }
 };
 
+const createPlayer = async (req, res) => {
+  const body = req.body;
+  try {
+    const newPlayer = await playerService.createPlayer(body);
+    socketService.emitPlayerCreated(newPlayer);
+    res.status(201).json({
+      status: "ok",
+      data: newPlayer,
+      message: `Creacion completada. se registro el nuevo player: ${newPlayer.long_name} `,
+    });
+  } catch (error) {
+    handleError(res, error);
+  }
+};
+
 const getPlayerById = async (req, res) => {
   const playerId = req.params.id;
   const fifaVersion = req.params.v;
@@ -108,4 +123,5 @@ module.exports = {
   updatePlayer,
   deletePlayer,
   exportPlayers,
+  createPlayer,
 };

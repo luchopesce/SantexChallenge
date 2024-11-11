@@ -1,24 +1,39 @@
+/* Estilos para campos válidos */
 .ng-valid[required],
 .ng-valid.required {
-  border-left: 5px solid #42a948; /* green */
+  border-left: 5px solid #42a948; /* verde */
 }
-.ng-invalid:not(form) {
-  border-left: 5px solid #a94442; /* red */
+
+/* Estilos para campos inválidos */
+.ng-invalid:not(form),
+.is-invalid {
+  border-left: 5px solid #a94442; /* rojo */
 }
+
+/* Estilo para las alertas de error */
 .alert div {
   background-color: #fed3d3;
   color: #820000;
   padding: 1rem;
   margin-bottom: 1rem;
 }
+
+/* Estilos para los formularios y etiquetas */
 .form-group {
   margin-bottom: 1rem;
 }
+
 label {
   display: block;
   margin-bottom: 0.5rem;
 }
+
 select {
   width: 100%;
   padding: 0.5rem;
+}
+.modal-header .modal-subtitle {
+  margin-top: 4px; /* Ajusta el espacio entre el nombre y el ID */
+  font-size: 0.9em; /* Haz el ID un poco más pequeño que el nombre */
+  color: #6c757d; /* Color secundario, o ajusta según tu diseño */
 }

@@ -29,3 +29,56 @@ th i {
 .pagination .page-item.disabled .page-link {
   color: #6c757d;
 }
+
+.table-fixed {
+  width: 100%;
+}
+
+.table-fixed th,
+.table-fixed td {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (min-width: 1201px) {
+  .table-fixed {
+    table-layout: fixed;
+  }
+
+  .table-fixed th:nth-child(1),
+  .table-fixed td:nth-child(1) {
+    width: 10%;
+  }
+
+  .table-fixed th:nth-child(2),
+  .table-fixed td:nth-child(2) {
+    width: 10%;
+  }
+
+  .table-fixed th:nth-child(3),
+  .table-fixed td:nth-child(3) {
+    width: 10%;
+  }
+
+  .table-fixed th:nth-child(4),
+  .table-fixed td:nth-child(4) {
+    width: 20%;
+  }
+
+  .table-fixed th:nth-child(5),
+  .table-fixed td:nth-child(5) {
+    width: 20%;
+  }
+
+  .table-fixed th:nth-child(6),
+  .table-fixed td:nth-child(6) {
+    width: 10%;
+  }
+}
+
+@media (max-width: 1200px) {
+  .table-responsive {
+    overflow-x: auto;
+  }
+}

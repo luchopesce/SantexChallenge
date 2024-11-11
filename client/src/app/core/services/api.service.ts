@@ -11,11 +11,16 @@ export class ApiService {
 
   constructor(private http: HttpClient) {}
 
+  createPlayer(playerData: any): Observable<any> {
+    return this.http.post(`${this.apiUrl}/player`, playerData);
+  }
+
   getPlayers(
     page: number = 1,
     limit: number = 10,
     searchTerm: string = '',
-    sortBy: string = ''
+    sortBy: string = '',
+    sortDirection: 'asc' | 'desc' = 'asc'
   ): Observable<any> {
     const params: any = {
       page: page.toString(),
@@ -28,6 +33,7 @@ export class ApiService {
 
     if (sortBy) {
       params.sortBy = sortBy;
+      params.sortDirection = sortDirection;
     }
 
     return this.http.get(`${this.apiUrl}/player`, { params });
@@ -36,13 +42,10 @@ export class ApiService {
   getById(player: any): Observable<any> {
     const playerId = player?.player_id || null;
     const fifaVersion = player?.fifa_version || null;
-    console.log(fifaVersion);
-
     return this.http.get(`${this.apiUrl}/player/${playerId}/${fifaVersion}`);
   }
 
   updatePlayer(originalPlayer: any, updatedPlayer: any): Observable<any> {
-    console.log(this.apiUrl);
     const playerId = originalPlayer.player_id;
     const fifaVersion = originalPlayer.fifa_version;
     return this.http.put(

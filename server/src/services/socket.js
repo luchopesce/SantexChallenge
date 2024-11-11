@@ -36,8 +36,15 @@ function emitPlayerDeleted(playerDeleted) {
   }
 }
 
+function emitPlayerCreated(playerCreated) {
+  if (io) {
+    io.emit("playerCreated", playerCreated);
+  }
+}
+
 module.exports = {
   initializeSocketServer,
   emitPlayerUpdated,
   emitPlayerDeleted,
+  emitPlayerCreated,
 };

@@ -1,9 +1,15 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { PlayerEditComponent } from '../player-edit/player-edit.component';
 import { CommonModule } from '@angular/common';
 import { PlayerDetailComponent } from '../player-detail/player-detail.component';
 import { AuthService } from '../../../core/services/auth.service';
-import { debounceTime, distinctUntilChanged, finalize } from 'rxjs';
+import {
+  debounceTime,
+  distinctUntilChanged,
+  finalize,
+  Subject,
+  takeUntil,
+} from 'rxjs';
 import { ReactiveFormsModule } from '@angular/forms';
 import { ApiService } from '../../../core/services/api.service';
 import { SearchService } from '../../../core/services/search.service';
@@ -23,11 +29,12 @@ import { SocketService } from '../../../core/services/socket.service';
   templateUrl: './player-list.component.html',
   styleUrls: ['./player-list.component.scss'],
 })
-export class PlayerListComponent implements OnInit {
+export class PlayerListComponent implements OnInit, OnDestroy {
   isLoggedIn = false;
   isLoading: boolean = false;
   error: any | null = null;
   sortBy: string = '';
+  sortDirection: 'asc' | 'desc' = 'asc';
   playersList: any[] = [];
   selectedPlayer: any;
   totalResults: number = 0;
@@ -36,6 +43,11 @@ export class PlayerListComponent implements OnInit {
   totalPages: number = 1;
   searchTerm: string = '';
   originalPlayer: any = null;
+  showToast: boolean = false;
+  toastMessage: string = '';
+  toastSize: string = '';
+
+  private destroy$ = new Subject<void>();
 
   constructor(
     private apiService: ApiService,
@@ -49,198 +61,179 @@ export class PlayerListComponent implements OnInit {
     this.isLoggedIn = this.authService.isLoggedIn();
     this.setupSearchListener();
     this.getAllPlayers();
-    this.socketService.onPlayerUpdated((updatedPlayer) => {
-      console.log('Usuario actualizado', updatedPlayer);
-      this.getAllPlayers();
+    this.setupSocketListeners();
+  }
+
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  private updatePlayersList(
+    player: any,
+    action: 'create' | 'update' | 'delete'
+  ) {
+    switch (action) {
+      case 'create':
+        this.playersList.push(player);
+        break;
+      case 'update':
+        const indexToUpdate = this.playersList.findIndex(
+          (p) => p.player_id === player.player_id
+        );
+        if (indexToUpdate !== -1) {
+          this.playersList[indexToUpdate] = {
+            ...this.playersList[indexToUpdate],
+            ...player,
+          };
+        }
+        break;
+      case 'delete':
+        this.playersList = this.playersList.filter(
+          (p) => p.player_id !== player.player_id
+        );
+        break;
+    }
+  }
+  private setupSocketListeners() {
+    this.socketService.onPlayerCreated((newPlayer) => {
+      this.updatePlayersList(newPlayer, 'create');
     });
-    this.socketService.onPlayerDeleted((playerDeleted) => {
-      console.log('Usuario eliminado', playerDeleted);
-      this.getAllPlayers();
+
+    this.socketService.onPlayerUpdated((updatedPlayer) => {
+      this.updatePlayersList(updatedPlayer, 'update');
+    });
+
+    this.socketService.onPlayerDeleted((deletedPlayer) => {
+      this.updatePlayersList(deletedPlayer, 'delete');
     });
   }
 
-  setupSearchListener() {
+  private setupSearchListener() {
     this.searchService.currentSearchTerm
-      .pipe(debounceTime(300), distinctUntilChanged())
+      .pipe(debounceTime(300), distinctUntilChanged(), takeUntil(this.destroy$))
       .subscribe((value) => {
         this.searchTerm = value;
-        this.currentPage = 1;
-        this.getAllPlayers();
+        this.refreshPlayers(1);
       });
   }
 
-  getAllPlayers() {
-    this.isLoading = true;
-    this.error = null;
+  toggleSort(field: string) {
+    if (this.sortBy === field) {
+      this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
+    } else {
+      this.sortBy = field;
+      this.sortDirection = 'asc';
+    }
+    this.getAllPlayers();
+  }
 
+  private getAllPlayers() {
+    this.setLoadingState(true);
     this.apiService
       .getPlayers(
         this.currentPage,
         this.itemsPerPage,
         this.searchTerm,
-        this.sortBy
+        this.sortBy,
+        this.sortDirection
       )
-      .pipe(
-        debounceTime(300),
-        distinctUntilChanged(),
-        finalize(() => (this.isLoading = false))
-      )
+      .pipe(finalize(() => this.setLoadingState(false)))
       .subscribe({
         next: (res: any) => {
           this.playersList = res.data;
           this.totalResults = res.pagination.totalResults;
           this.totalPages = res.pagination.totalPages;
         },
-        error: (error) => {
-          const errorMessage = error?.message || 'Error desconocido';
-          this.error = this.utilsService.handleError(
-            errorMessage,
-            'fetching list of players'
-          );
-        },
-        complete: () => {
-          this.isLoading = false;
-        },
+        error: (error) => this.handleError(error, 'fetching list of players'),
       });
   }
 
-  getPlayerById(player: any) {
-    this.isLoading = true;
-    this.error = null;
-
+  private getPlayerById(player: any) {
     const cacheKey = `${player.player_id}-${player.fifa_version}-${player.updatedAt}`;
+    this.setLoadingState(true);
 
     if (this.utilsService.isCacheValid(cacheKey)) {
       this.selectedPlayer = this.utilsService.getPlayerFromCache(cacheKey);
-      this.isLoading = false;
+      this.setLoadingState(false);
       return;
     }
 
-    this.apiService
-      .getById(player)
-      .pipe(
-        debounceTime(100),
-        distinctUntilChanged(),
-        finalize(() => (this.isLoading = false))
-      )
-      .subscribe({
-        next: (res: any) => {
-          setTimeout(() => {
-            this.selectedPlayer = res.data;
-            this.utilsService.setPlayerInCache(cacheKey, this.selectedPlayer);
-          }, 3000);
-        },
-        error: (err) => {
-          console.log(err.error);
-          const errorMessage = err?.error || 'Error desconocido';
-          this.error = this.utilsService.handleError(
-            errorMessage,
-            'fetching this player'
-          );
-        },
-        complete: () => {
-          this.isLoading = false;
-        },
-      });
+    this.apiService.getById(player).subscribe({
+      next: (res: any) => {
+        setTimeout(() => {
+          this.selectedPlayer = res.data;
+          this.utilsService.setPlayerInCache(cacheKey, this.selectedPlayer);
+        }, 1000);
+      },
+      error: (error) => {
+        this.handleError(error, 'fetching this player');
+      },
+      complete: () => {
+        this.setLoadingState(false);
+      },
+    });
   }
 
   updatePlayer(updatedPlayer: any) {
-    if (!this.originalPlayer?.player_id || !this.originalPlayer?.fifa_version) {
-      this.error = 'Jugador inválido o datos faltantes';
-      return;
-    }
-
-    this.isLoading = true;
-    this.error = null;
-
-    this.apiService.updatePlayer(this.originalPlayer, updatedPlayer).subscribe({
-      next: (res: any) => {
-        const updatedPlayerData = res.data;
-
-        const index = this.playersList.findIndex(
-          (p) =>
-            p.player_id === this.originalPlayer.player_id &&
-            p.fifa_version === this.originalPlayer.fifa_version
-        );
-        if (index !== -1) {
-          this.playersList[index] = updatedPlayerData;
-        }
-
-        this.closeModal('editModal');
-      },
-      error: (error) => {
-        console.log(error.message);
-
-        const errorMessage = error?.message || 'Error desconocido';
-        this.error = this.utilsService.handleError(
-          errorMessage,
-          'updating players'
-        );
-      },
-      complete: () => {
-        this.isLoading = false;
-      },
-    });
+    this.setLoadingState(true);
+    setTimeout(() => {
+      this.apiService
+        .updatePlayer(this.originalPlayer, updatedPlayer)
+        .subscribe({
+          next: (res: any) => {
+            this.utilsService.showToastWithMessage(
+              this,
+              res.message,
+              'success',
+              5000
+            );
+            this.closeModal('editModal');
+          },
+          error: (error) => this.handleError(error, 'updating players'),
+          complete: () => this.setLoadingState(false),
+        });
+    }, 3000);
   }
 
   deletePlayer(player: any) {
-    this.isLoading = true;
-    this.error = null;
-
-    this.apiService.deletePlayer(player).subscribe({
-      next: (res: any) => {
-        const playerDeleted = res.data;
-        const index = this.playersList.findIndex(
-          (p) =>
-            p.player_id === playerDeleted.player_id &&
-            p.fifa_version === playerDeleted.fifa_version
-        );
-        if (index !== -1) {
-          this.playersList.splice(index, 1);
-        }
-        this.closeModal('confirmDeleteModal');
-      },
-      error: (error) => {
-        const errorMessage = error?.message || 'Error desconocido';
-        this.error = this.utilsService.handleError(
-          errorMessage,
-          'deleted player'
-        );
-      },
-      complete: () => {
-        this.isLoading = false;
-      },
-    });
+    this.setLoadingState(true);
+    setTimeout(() => {
+      this.apiService.deletePlayer(player).subscribe({
+        next: (res: any) => {
+          this.utilsService.showToastWithMessage(
+            this,
+            res.message,
+            'success',
+            5000
+          );
+          this.closeModal('confirmDeleteModal');
+        },
+        error: (error) => this.handleError(error, 'deleting player'),
+        complete: () => this.setLoadingState(false),
+      });
+    }, 3000);
   }
 
-  changePage(page: number): void {
-    this.currentPage = page;
+  private refreshPlayers(page?: number, itemsPerPage?: number): void {
+    this.currentPage = page ?? this.currentPage;
+    this.itemsPerPage = itemsPerPage ?? this.itemsPerPage;
     this.getAllPlayers();
   }
 
-  updateItemsPerPage(event: Event): void {
-    const target = event.target as HTMLSelectElement;
-    const newLimit = parseInt(target.value, 10);
-    if (!isNaN(newLimit)) {
-      this.itemsPerPage = newLimit;
-      this.currentPage = 1;
-      this.getAllPlayers();
-    }
+  changePage(page: number): void {
+    this.refreshPlayers(page);
   }
 
-  closeModal(modalId) {
-    const modalElement = document.getElementById(modalId);
-    if (modalElement) {
-      const modal = bootstrap.Modal.getInstance(modalElement);
-      if (modal) {
-        modal.hide();
-      }
+  updateItemsPerPage(event: Event): void {
+    const newLimit = parseInt((event.target as HTMLSelectElement).value, 10);
+    if (!isNaN(newLimit)) {
+      this.refreshPlayers(1, newLimit);
     }
-    this.isLoading = false;
-    this.selectedPlayer = null;
   }
 
   async openModal(modalId: string, player: any) {
+    this.error = null;
     this.originalPlayer = JSON.parse(JSON.stringify(player));
     try {
       const modalElement = document.getElementById(modalId);
@@ -250,8 +243,26 @@ export class PlayerListComponent implements OnInit {
       }
       await this.getPlayerById(player);
     } catch (error) {
-      console.error('Error loading player details:', error);
-      this.error = 'Error loading player details';
+      this.utilsService.handleError(error, 'in open modal');
     }
+  }
+
+  closeModal(modalId: string) {
+    const modalElement = document.getElementById(modalId);
+    const modalInstance = modalElement
+      ? bootstrap.Modal.getInstance(modalElement)
+      : null;
+    modalInstance?.hide();
+    this.setLoadingState(false);
+    this.selectedPlayer = null;
+  }
+
+  private handleError(error: any, context: string) {
+    const errorMessage = error?.message || 'Error desconocido';
+    this.error = this.utilsService.handleError(errorMessage, context);
+  }
+
+  private setLoadingState(isLoading: boolean) {
+    this.isLoading = isLoading;
   }
 }

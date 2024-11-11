@@ -24,6 +24,12 @@ export class SocketService {
     });
   }
 
+  onPlayerCreated(callback: (data: any) => void): void {
+    this.socket.on('playerCreated', (data: any) => {
+      callback(data);
+    });
+  }
+
   emitEvent(eventName: string, data: any): void {
     this.socket.emit(eventName, data);
   }

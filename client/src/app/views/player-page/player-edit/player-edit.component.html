@@ -8,9 +8,15 @@
   <div class="modal-dialog">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 *ngIf="!error" class="modal-title" id="editModalLabel">
-          {{ player ? "Edit: " + player.long_name : "Cargando..." }}
-        </h5>
+        <div>
+          <h5 *ngIf="!error" class="modal-title" id="editModalLabel">
+            <i class="bi bi-person-fill me-2"></i>
+            {{ player ? player.long_name : "Loading..." }}
+          </h5>
+          <h6 *ngIf="!error" class="modal-subtitle">
+            {{ player ? "ID: " + player.player_id : " " }}
+          </h6>
+        </div>
         <button
           type="button"
           class="btn-close"
@@ -25,7 +31,7 @@
         </div>
 
         <ng-container *ngIf="!error">
-          <div *ngIf="!player" class="text-center">
+          <div *ngIf="!player || loading" class="text-center">
             <div class="spinner-border text-primary" role="status">
               <span class="visually-hidden">Loading...</span>
             </div>
@@ -33,20 +39,47 @@
           </div>
 
           <ng-container *ngIf="player && !loading">
-            <form>
+            <form [formGroup]="playerForm">
               <div *ngFor="let field of fieldsForm" class="mb-3">
-                <label [for]="field.key" class="form-label">
-                  {{ field.label }}
-                </label>
+                <label [for]="field.key" class="form-label">{{
+                  field.label
+                }}</label>
+
                 <input
                   type="text"
                   class="form-control"
                   [id]="field.key"
-                  [(ngModel)]="editedPlayer[field.key]"
-                  (ngModelChange)="onFieldChange()"
-                  [name]="field.key"
+                  [formControlName]="field.key"
                   [placeholder]="field.placeholder"
+                  [class.is-invalid]="
+                    playerForm.get(field.key)?.invalid &&
+                    playerForm.get(field.key)?.touched
+                  "
                 />
+
+                <div
+                  *ngIf="
+                    playerForm.get(field.key)?.invalid &&
+                    playerForm.get(field.key)?.touched
+                  "
+                  class="invalid-feedback"
+                >
+                  <div *ngIf="playerForm.get(field.key)?.hasError('integer')">
+                    {{ playerForm.get(field.key)?.errors?.['integer'] }}
+                  </div>
+                  <div *ngIf="playerForm.get(field.key)?.hasError('minlength')">
+                    Minimo 3 caracteres
+                  </div>
+                  <div *ngIf="playerForm.get(field.key)?.hasError('required')">
+                    Ingrese un valor
+                  </div>
+                  <div *ngIf="playerForm.get(field.key)?.hasError('min')">
+                    Valor debe ser mayor a 0
+                  </div>
+                  <div *ngIf="playerForm.get(field.key)?.hasError('max')">
+                    Valor debe ser menor a 100
+                  </div>
+                </div>
               </div>
             </form>
           </ng-container>
@@ -56,10 +89,9 @@
       <div
         class="modal-footer p-3 d-flex justify-content-between align-items-center"
       >
-        <span class="text-muted me-auto">
-          {{ player ? "Fifa v" + player.fifa_version + "." : "" }}
-        </span>
-
+        <span *ngIf="!error" class="text-muted me-auto">{{
+          player ? "Fifa v" + player.fifa_version + "." : ""
+        }}</span>
         <div class="d-flex">
           <button type="button" class="btn btn-secondary" (click)="onClose()">
             Close
