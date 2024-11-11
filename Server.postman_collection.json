@@ -1,0 +1,184 @@
+{
+  "info": {
+    "_postman_id": "91822764-fb35-44e4-8881-6353efa9a968",
+    "name": "Server",
+    "schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json",
+    "_exporter_id": "26060913",
+    "_collection_link": "https://bold-robot-915058.postman.co/workspace/Santex-Postman~8501618f-0b5d-456a-84d0-c4b31f62e748/collection/26060913-91822764-fb35-44e4-8881-6353efa9a968?action=share&source=collection_link&creator=26060913"
+  },
+  "item": [
+    {
+      "name": "Players",
+      "item": [
+        {
+          "name": "getPlayerById",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "localhost:3000/api/player/:id/:v",
+              "host": ["localhost"],
+              "port": "3000",
+              "path": ["api", "player", ":id", ":v"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "2"
+                },
+                {
+                  "key": "v",
+                  "value": "2"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "getPlayerHistory",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "localhost:3000/api/player/history/:id",
+              "host": ["localhost"],
+              "port": "3000",
+              "path": ["api", "player", "history", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "2"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "deletePlayer",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "localhost:3000/api/player/:id/:v",
+              "host": ["localhost"],
+              "port": "3000",
+              "path": ["api", "player", ":id", ":v"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "28"
+                },
+                {
+                  "key": "v",
+                  "value": "156"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "getPlayers",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": {
+                "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MiwiaWF0IjoxNzMxMzE5NDIyLCJleHAiOjE3MzEzMjMwMjJ9.FHzl6hEJZWeggElSMkKQF9O7HCDCih_XjK_-T7Ooz3c"
+              }
+            },
+            "method": "GET",
+            "header": [],
+            "url": "localhost:3000/api/player"
+          },
+          "response": []
+        },
+        {
+          "name": "updatePlayer",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [""],
+                "type": "text/javascript",
+                "packages": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"fifa_version\": \"222\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "localhost:3000/api/player/:id/:v",
+              "host": ["localhost"],
+              "port": "3000",
+              "path": ["api", "player", ":id", ":v"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "41"
+                },
+                {
+                  "key": "v",
+                  "value": "2"
+                }
+              ]
+            },
+            "description": "### Update Player FIFA Version\n\nThis endpoint is used to update the FIFA version for a specific player.\n\n#### Request Body\n\n- `fifa_version` (string, required): The updated FIFA version for the player.\n    \n\n#### Response\n\nThe response of this request follows the JSON schema below:\n\n``` json\n{\n  \"type\": \"object\",\n  \"properties\": {\n    \"status\": {\n      \"type\": \"string\"\n    },\n    \"message\": {\n      \"type\": \"string\"\n    }\n  }\n}\n\n ```"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Users",
+      "item": [
+        {
+          "name": "registerUser",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"username\": \"lucho\",\n    \"password\": \"123456\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "localhost:3000/api/auth/register"
+          },
+          "response": []
+        },
+        {
+          "name": "loginUser",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"username\": \"lucho\",\n    \"password\": \"123456\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "localhost:3000/api/auth/login"
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}
