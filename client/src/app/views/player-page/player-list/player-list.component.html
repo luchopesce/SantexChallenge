@@ -126,7 +126,7 @@
       class="form-select form-select-sm"
       (change)="updateItemsPerPage($event)"
     >
-      <option *ngFor="let limit of [5, 10, 15, 20, 50]" [value]="limit">
+      <option *ngFor="let limit of [10, 15, 20, 50]" [value]="limit">
         {{ limit }}
       </option>
     </select>

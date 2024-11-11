@@ -39,6 +39,7 @@ En este proyecto hemos desarrollado una aplicación web utilizando Angular en el
 
 - Tener **Node.js** y **npm** instalados.
 - Tener **MySQL** corriendo en tu entorno local o configurar un servicio de base de datos.
+- Tener **Docker** para correr docker-compose.
 
 ### Instrucciones
 
@@ -90,11 +91,10 @@ JWT_SECRET=santexjwt
 Si estás usando Docker, puedes crear un archivo `docker-compose.yml` en la raíz del proyecto para configurar MySQL:
 
 ```yaml
-version: "3.8"
 services:
   mysql:
     image: mysql:8.0
-    container_name: mysql-container
+    container_name: mysql
     environment:
       MYSQL_ROOT_PASSWORD: santex
       MYSQL_DATABASE: SantexDB
