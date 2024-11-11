@@ -18,14 +18,16 @@ app.use(
   })
 );
 
-initializeDatabase().then(() => {
-  const server = app.listen(process.env.SERVER_PORT, () => {
-    console.log(
-      `Server listening on ${process.env.SERVER_HTTP}:${process.env.SERVER_PORT}`
-    );
+setTimeout(() => {
+  initializeDatabase().then(() => {
+    const server = app.listen(process.env.SERVER_PORT, () => {
+      console.log(
+        `Server listening on ${process.env.SERVER_HTTP}:${process.env.SERVER_PORT}`
+      );
+    });
+    socketService.initializeSocketServer(server);
   });
-  socketService.initializeSocketServer(server);
-});
+}, 30000);
 
 app.use(`${process.env.SERVER_NAME}/player`, authenticate, playerRouter);
 app.use(`${process.env.SERVER_NAME}/auth`, authRouter);

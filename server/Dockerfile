@@ -1,4 +1,3 @@
-
 FROM node:18-alpine
 
 RUN apk add --no-cache bash
@@ -11,8 +10,6 @@ RUN npm install
 
 COPY . .
 
-COPY wait-for-it.sh /app/wait-for-it.sh
-
-
 EXPOSE 3000
-CMD ["./wait-for-it.sh", "mysql:3306", "--", "npm", "run", "dev"]
+
+CMD ["npm", "run", "dev"]

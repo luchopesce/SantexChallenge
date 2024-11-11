@@ -94,9 +94,13 @@ export class PlayerListComponent implements OnInit, OnDestroy {
         }
         break;
       case 'delete':
-        this.playersList = this.playersList.filter(
-          (p) => p.player_id !== player.player_id
+        const indexToDelete = this.playersList.findIndex(
+          (p) => p.player_id === player.player_id
         );
+
+        if (indexToDelete !== -1) {
+          this.playersList.splice(indexToDelete, 1);
+        }
         break;
     }
   }
