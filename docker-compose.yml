@@ -1,0 +1,42 @@
+version: "3.8"
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: mysql-container
+    environment:
+      MYSQL_ROOT_PASSWORD: santex
+      MYSQL_DATABASE: SantexDB
+    ports:
+      - "3306:3306"
+    networks:
+      - app-network
+    volumes:
+      - mysql-data:/var/lib/mysql
+
+  server:
+    build: ./server
+    container_name: node-server
+    environment:
+      DB_NAME: SantexDB
+      DB_USER: root
+      DB_PASSWORD: santex
+      DB_HOST: mysql
+      SERVER_PORT: 3000
+      SERVER_HTTP: http://localhost
+      SERVER_NAME: /api
+      CLIENT_HTTP: http://localhost:4200
+      JWT_SECRET: santexjwt
+    ports:
+      - "3000:3000"
+    depends_on:
+      - mysql
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  mysql-data:
+    driver: local
