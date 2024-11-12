@@ -72,7 +72,7 @@
         >
           <i class="bi bi-person-badge"></i> Position
         </th>
-        <th *ngIf="isLoggedIn" scope="col" class="text-center">Details</th>
+        <th scope="col" class="text-center">Details</th>
         <th *ngIf="isLoggedIn" scope="col" class="text-center">Actions</th>
       </tr>
     </thead>
@@ -84,7 +84,7 @@
         <td class="text-center">{{ player.long_name }}</td>
         <td class="text-center">{{ player.club_name }}</td>
         <td class="text-center">{{ player.player_positions }}</td>
-        <td *ngIf="isLoggedIn" class="text-center">
+        <td class="text-center">
           <a class="link" (click)="openModal('detailModal', player)"
             >Show details</a
           >

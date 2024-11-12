@@ -1,4 +1,5 @@
 import { Injectable } from '@angular/core';
+import * as bootstrap from 'bootstrap';
 
 @Injectable({
   providedIn: 'root',
@@ -30,6 +31,22 @@ export class UtilsService {
     setTimeout(() => {
       component.showToast = false;
     }, duration);
+  }
+
+  openModal(modalId: string): void {
+    const modalElement = document.getElementById(modalId);
+    if (modalElement) {
+      const modal = new bootstrap.Modal(modalElement);
+      modal.show();
+    }
+  }
+
+  closeModal(modalId: string): void {
+    const modalElement = document.getElementById(modalId);
+    const modalInstance = modalElement
+      ? bootstrap.Modal.getInstance(modalElement)
+      : null;
+    modalInstance?.hide();
   }
 
   isCacheValid(cacheKey: string): boolean {

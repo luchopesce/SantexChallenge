@@ -25,11 +25,6 @@ export class SidebarComponent implements OnInit {
   private updateNavigationItems(isLoggedIn: boolean) {
     this.navigationItems = [
       {
-        icon: 'bi-house-fill',
-        name: 'Home',
-        route: '/home',
-      },
-      {
         icon: 'bi-people',
         name: 'Players',
         route: '/players',

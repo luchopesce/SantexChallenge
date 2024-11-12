@@ -14,7 +14,7 @@
     <button
       *ngIf="isLoggedIn"
       class="btn btn-circle"
-      (click)="openModalCreate()"
+      (click)="openModal('createPlayerModal')"
       title="Agregar nuevo player"
     >
       <i class="bi bi-plus-circle-fill"></i>
@@ -26,13 +26,13 @@
         title="Importar archivo CSV"
         class="btn btn-sm btn-outline-secondary"
         for="fileInput"
-        [class.disabled]="isImporting || isExporting"
-        [attr.disabled]="isImporting || isExporting ? true : null"
+        [class.disabled]="isLoading"
+        [attr.disabled]="isLoading ? true : null"
         style="display: inline-flex; align-items: center"
       >
-        {{ isImporting ? "Importando" : "Importar" }}
+        Importar
         <div
-          *ngIf="isImporting"
+          *ngIf="isLoading"
           class="spinner-border spinner-border-sm ml-2"
           role="status"
         ></div>
@@ -41,7 +41,7 @@
       <input
         type="file"
         (change)="importCSV($event)"
-        [disabled]="isImporting || isExporting"
+        [disabled]="isLoading"
         id="fileInput"
         accept=".csv"
         style="display: none"
@@ -52,11 +52,11 @@
         style="display: inline-flex; align-items: center"
         (click)="exportCSV()"
         class="btn btn-sm btn-outline-secondary"
-        [disabled]="isExporting || isImporting"
+        [disabled]="isLoading"
       >
-        {{ isExporting ? "Exportando " : "Exportar" }}
+        Exportar
         <div
-          *ngIf="isExporting"
+          *ngIf="isLoading"
           class="spinner-border spinner-border-sm ml-2"
           role="status"
         ></div>
@@ -70,6 +70,6 @@
   (save)="createPlayer($event)"
   [loading]="isLoading"
   [error]="error"
-  (close)="closeModalCreate()"
+  (close)="closeModal('createPlayerModal')"
 >
 </app-player-create>

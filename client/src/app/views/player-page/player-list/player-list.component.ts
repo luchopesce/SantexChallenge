@@ -3,17 +3,10 @@ import { PlayerEditComponent } from '../player-edit/player-edit.component';
 import { CommonModule } from '@angular/common';
 import { PlayerDetailComponent } from '../player-detail/player-detail.component';
 import { AuthService } from '../../../core/services/auth.service';
-import {
-  debounceTime,
-  distinctUntilChanged,
-  finalize,
-  Subject,
-  takeUntil,
-} from 'rxjs';
+import { debounceTime, distinctUntilChanged, Subject, takeUntil } from 'rxjs';
 import { ReactiveFormsModule } from '@angular/forms';
 import { ApiService } from '../../../core/services/api.service';
 import { SearchService } from '../../../core/services/search.service';
-import * as bootstrap from 'bootstrap';
 import { UtilsService } from '../../../core/services/utils.service';
 import { SocketService } from '../../../core/services/socket.service';
 import { ToastComponent } from '../../../core/components/toast/toast.component';
@@ -32,25 +25,28 @@ import { ToastComponent } from '../../../core/components/toast/toast.component';
   styleUrls: ['./player-list.component.scss'],
 })
 export class PlayerListComponent implements OnInit, OnDestroy {
-  isLoggedIn = false;
+  private destroy$ = new Subject<void>();
+
+  isLoggedIn: boolean = false;
   isLoading: boolean = false;
   error: any | null = null;
-  sortBy: string = '';
-  sortDirection: 'asc' | 'desc' = 'asc';
-  playersList: any[] = [];
-  historyPlayer: any[] = [];
-  selectedPlayer: any;
-  totalResults: number = 0;
-  currentPage: number = 1;
-  itemsPerPage: number = 10;
-  totalPages: number = 1;
-  searchTerm: string = '';
-  originalPlayer: any = null;
+
   showToast: boolean = false;
   toastMessage: string = '';
   toastSize: string = '';
 
-  private destroy$ = new Subject<void>();
+  playersList: any[] = [];
+  historyPlayer: any[] = [];
+  originalPlayer: any = null;
+  selectedPlayer: any;
+
+  searchTerm: string = '';
+  totalResults: number = 0;
+  currentPage: number = 1;
+  itemsPerPage: number = 10;
+  totalPages: number = 1;
+  sortBy: string = '';
+  sortDirection: 'asc' | 'desc' = 'asc';
 
   constructor(
     private apiService: ApiService,
@@ -61,9 +57,12 @@ export class PlayerListComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit() {
-    this.authService.getAuthStatus().subscribe((isLoggedIn) => {
-      this.isLoggedIn = isLoggedIn;
-    });
+    this.authService
+      .getAuthStatus()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((isLoggedIn) => {
+        this.isLoggedIn = isLoggedIn;
+      });
     this.setupSearchListener();
     this.getAllPlayers();
     this.setupSocketListeners();
@@ -72,6 +71,18 @@ export class PlayerListComponent implements OnInit, OnDestroy {
   ngOnDestroy() {
     this.destroy$.next();
     this.destroy$.complete();
+  }
+
+  private checkLoginStatus(): boolean {
+    if (!this.isLoggedIn) {
+      this.utilsService.showToastWithMessage(
+        this,
+        'Error: Debes estar logueado para crear un jugador.',
+        'danger'
+      );
+      return false;
+    }
+    return true;
   }
 
   private updatePlayersList(
@@ -119,7 +130,7 @@ export class PlayerListComponent implements OnInit, OnDestroy {
     });
 
     this.socketService.onPlayerImport(() => {
-      this.getAllPlayers();
+      this.refreshPlayers(1);
     });
   }
 
@@ -132,18 +143,10 @@ export class PlayerListComponent implements OnInit, OnDestroy {
       });
   }
 
-  toggleSort(field: string) {
-    if (this.sortBy === field) {
-      this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
-    } else {
-      this.sortBy = field;
-      this.sortDirection = 'asc';
-    }
-    this.getAllPlayers();
-  }
-
   private getAllPlayers() {
-    this.setLoadingState(true);
+    this.isLoading = true;
+    this.error = null;
+
     this.apiService
       .getPlayers(
         this.currentPage,
@@ -152,63 +155,87 @@ export class PlayerListComponent implements OnInit, OnDestroy {
         this.sortBy,
         this.sortDirection
       )
-      .pipe(finalize(() => this.setLoadingState(false)))
+      .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (res: any) => {
           this.playersList = res.data;
           this.totalResults = res.pagination.totalResults;
           this.totalPages = res.pagination.totalPages;
         },
-        error: (error) => this.handleError(error, 'fetching list of players'),
+        error: (error) => {
+          this.error = error ? error : 'Problemas internos';
+          this.handleError(this.error, 'fetching list of players');
+          this.isLoading = false;
+        },
+        complete: () => (this.isLoading = false),
       });
   }
 
   private getPlayerById(player: any) {
-    const cacheKey = `${player.player_id}-${player.fifa_version}-${player.updatedAt}`;
-    this.setLoadingState(true);
+    this.isLoading = true;
+    this.error = null;
 
+    const cacheKey = `${player.player_id}-${player.fifa_version}-${player.updatedAt}`;
     if (this.utilsService.isCacheValid(cacheKey)) {
       this.selectedPlayer = this.utilsService.getPlayerFromCache(cacheKey);
-      this.setLoadingState(false);
+      this.isLoading = false;
       return;
     }
 
-    this.apiService.getById(player).subscribe({
-      next: (res: any) => {
-        setTimeout(() => {
-          this.selectedPlayer = res.data;
-          this.utilsService.setPlayerInCache(cacheKey, this.selectedPlayer);
-        }, 1000);
-      },
-      error: (error) => {
-        this.handleError(error, 'fetching this player');
-      },
-      complete: () => {
-        this.setLoadingState(false);
-      },
-    });
+    this.apiService
+      .getById(player)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (res: any) => {
+          setTimeout(() => {
+            this.selectedPlayer = res.data;
+            this.utilsService.setPlayerInCache(cacheKey, this.selectedPlayer);
+          }, 1000);
+        },
+        error: (error) => {
+          this.error = error ? error : 'Problemas internos';
+          this.handleError(this.error, 'fetching this player');
+          this.isLoading = false;
+        },
+        complete: () => (this.isLoading = false),
+      });
   }
 
   private getPlayerHistory(playerId: any) {
-    this.setLoadingState(true);
-    this.apiService.getPlayerHistory(playerId).subscribe({
-      next: (res: any) => {
-        this.historyPlayer = res.data;
-      },
-      error: (error) => {
-        this.handleError(error, 'fetching this player');
-      },
-      complete: () => {
-        this.setLoadingState(false);
-      },
-    });
+    this.isLoading = true;
+    this.error = null;
+
+    this.apiService
+      .getPlayerHistory(playerId)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (res: any) => {
+          this.historyPlayer = res.data;
+        },
+        error: (error) => {
+          this.error = error ? error : 'Problemas internos';
+          this.handleError(this.error, 'fetching history of player');
+          this.isLoading = false;
+        },
+        complete: () => (this.isLoading = false),
+      });
+  }
+
+  private refreshPlayers(page?: number, itemsPerPage?: number): void {
+    this.currentPage = page ?? this.currentPage;
+    this.itemsPerPage = itemsPerPage ?? this.itemsPerPage;
+    this.getAllPlayers();
   }
 
   updatePlayer(updatedPlayer: any) {
-    this.setLoadingState(true);
+    this.checkLoginStatus();
+    this.isLoading = true;
+    this.error = null;
+
     setTimeout(() => {
       this.apiService
         .updatePlayer(this.originalPlayer, updatedPlayer)
+        .pipe(takeUntil(this.destroy$))
         .subscribe({
           next: (res: any) => {
             this.utilsService.showToastWithMessage(
@@ -219,35 +246,53 @@ export class PlayerListComponent implements OnInit, OnDestroy {
             );
             this.closeModal('editModal');
           },
-          error: (error) => this.handleError(error, 'updating players'),
-          complete: () => this.setLoadingState(false),
+          error: (error) => {
+            this.error = error ? error : 'Problemas internos';
+            this.handleError(this.error, 'updating list of players');
+            this.isLoading = false;
+          },
+          complete: () => (this.isLoading = false),
         });
     }, 3000);
   }
 
   deletePlayer(player: any) {
-    this.setLoadingState(true);
+    this.checkLoginStatus();
+    this.isLoading = true;
+    this.error = null;
+
     setTimeout(() => {
-      this.apiService.deletePlayer(player).subscribe({
-        next: (res: any) => {
-          this.utilsService.showToastWithMessage(
-            this,
-            res.message,
-            'success',
-            5000
-          );
-          this.closeModal('confirmDeleteModal');
-        },
-        error: (error) => this.handleError(error, 'deleting player'),
-        complete: () => this.setLoadingState(false),
-      });
+      this.apiService
+        .deletePlayer(player)
+        .pipe(takeUntil(this.destroy$))
+        .subscribe({
+          next: (res: any) => {
+            this.utilsService.showToastWithMessage(
+              this,
+              res.message,
+              'success',
+              5000
+            );
+            this.closeModal('confirmDeleteModal');
+          },
+          error: (error) => {
+            this.error = error ? error : 'Problemas internos';
+            this.handleError(this.error, 'updating list of players');
+            this.isLoading = false;
+          },
+          complete: () => (this.isLoading = false),
+        });
     }, 3000);
   }
 
-  private refreshPlayers(page?: number, itemsPerPage?: number): void {
-    this.currentPage = page ?? this.currentPage;
-    this.itemsPerPage = itemsPerPage ?? this.itemsPerPage;
-    this.getAllPlayers();
+  toggleSort(field: string) {
+    if (this.sortBy === field) {
+      this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
+    } else {
+      this.sortBy = field;
+      this.sortDirection = 'asc';
+    }
+    this.refreshPlayers(1);
   }
 
   changePage(page: number): void {
@@ -261,38 +306,20 @@ export class PlayerListComponent implements OnInit, OnDestroy {
     }
   }
 
-  async openModal(modalId: string, player: any) {
-    this.error = null;
+  openModal(modalId: string, player: any) {
     this.originalPlayer = JSON.parse(JSON.stringify(player));
-    try {
-      const modalElement = document.getElementById(modalId);
-      if (modalElement) {
-        const modal = new bootstrap.Modal(modalElement);
-        modal.show();
-      }
-      await this.getPlayerById(player);
-      await this.getPlayerHistory(player.player_id);
-    } catch (error) {
-      this.utilsService.handleError(error, 'in open modal');
-    }
+    this.getPlayerById(player);
+    this.getPlayerHistory(player.player_id);
+    this.utilsService.openModal(modalId);
   }
 
   closeModal(modalId: string) {
-    const modalElement = document.getElementById(modalId);
-    const modalInstance = modalElement
-      ? bootstrap.Modal.getInstance(modalElement)
-      : null;
-    modalInstance?.hide();
-    this.setLoadingState(false);
     this.selectedPlayer = null;
+    this.utilsService.closeModal(modalId);
   }
 
   private handleError(error: any, context: string) {
     const errorMessage = error?.message || 'Error desconocido';
     this.error = this.utilsService.handleError(errorMessage, context);
-  }
-
-  private setLoadingState(isLoading: boolean) {
-    this.isLoading = isLoading;
   }
 }

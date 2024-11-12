@@ -559,6 +559,7 @@ export class PlayerCreateComponent implements OnInit {
   }
 
   onClose() {
+    this.resetForm();
     this.close.emit();
   }
 }
