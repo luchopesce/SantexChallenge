@@ -5,7 +5,6 @@ const { initializeDatabase } = require("./config/db");
 const cors = require("cors");
 const bodyParser = require("body-parser");
 const { socketService } = require("./services");
-const { authenticate } = require("./middleware");
 
 const app = express();
 app.use(bodyParser.json({ limit: "1mb" }));
@@ -27,7 +26,7 @@ setTimeout(() => {
     });
     socketService.initializeSocketServer(server);
   });
-}, 30000);
+}, 30);
 
-app.use(`${process.env.SERVER_NAME}/player`, authenticate, playerRouter);
+app.use(`${process.env.SERVER_NAME}/player`, playerRouter);
 app.use(`${process.env.SERVER_NAME}/auth`, authRouter);

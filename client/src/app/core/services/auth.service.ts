@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { BehaviorSubject, Observable } from 'rxjs';
-import { tap } from 'rxjs/operators';
+import { BehaviorSubject, Observable, of } from 'rxjs';
+import { tap, catchError } from 'rxjs/operators';
 import { Router } from '@angular/router';
 import { environment } from '../../../environments/environment';
 
@@ -10,8 +10,7 @@ import { environment } from '../../../environments/environment';
 })
 export class AuthService {
   private apiUrl = environment.apiUrl;
-  private authStatus = new BehaviorSubject<boolean>(this.hasToken());
-
+  private authStatus = new BehaviorSubject<boolean>(this.getToken() !== null);
   constructor(private http: HttpClient, private router: Router) {}
 
   getAuthStatus(): Observable<boolean> {
@@ -33,7 +32,7 @@ export class AuthService {
       })
       .pipe(
         tap((response) => {
-          if (response && response.token) {
+          if (response?.token) {
             this.setToken(response.token);
           }
         })
@@ -52,10 +51,28 @@ export class AuthService {
   logout(): void {
     localStorage.removeItem('token');
     this.authStatus.next(false);
-    this.router.navigate(['/home']);
+    this.router.navigate(['/players']);
   }
 
-  private hasToken(): boolean {
-    return this.getToken() !== null;
+  validateToken(): Observable<boolean> {
+    const token = this.getToken();
+    if (!token) {
+      this.logout();
+      return of(false);
+    }
+
+    return this.http
+      .post<boolean>(`${this.apiUrl}/auth/validate-token`, { token })
+      .pipe(
+        tap((isValid) => {
+          if (!isValid) {
+            this.logout();
+          }
+        }),
+        catchError(() => {
+          this.logout();
+          return of(false);
+        })
+      );
   }
 }
