@@ -16,15 +16,35 @@ const registerUser = async (userData) => {
   }
 };
 
-const loginUser = async (username, password) => {
+const getUserData = async (userData) => {
   try {
-    const thisUser = await authProvider.checkExistUser(username);
-    if (!thisUser) {
+    const userExist = await authProvider.checkExistUser(userData.username, [
+      "username",
+      "createdAt",
+    ]);
+    if (!userExist) {
       const error = new Error("El usuario ingresado no existe");
       error.status = 400;
       throw error;
     }
-    const userLogged = await authProvider.loginUser(thisUser, password);
+    return userExist;
+  } catch (error) {
+    throw error;
+  }
+};
+
+const loginUser = async (userData) => {
+  try {
+    const userExist = await authProvider.checkExistUser(userData.username);
+    if (!userExist) {
+      const error = new Error("El usuario ingresado no existe");
+      error.status = 400;
+      throw error;
+    }
+    const userLogged = await authProvider.loginUser(
+      userExist,
+      userData.password
+    );
     if (!userLogged) {
       const error = new Error("Los datos ingresados no coinciden");
       error.status = 400;
@@ -39,4 +59,5 @@ const loginUser = async (username, password) => {
 module.exports = {
   registerUser,
   loginUser,
+  getUserData,
 };

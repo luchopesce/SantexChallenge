@@ -13,7 +13,6 @@ import { SearchService } from '../../services/search.service';
 })
 export class HeaderComponent implements OnInit {
   isSearchVisible = false;
-
   constructor(private router: Router, private searchService: SearchService) {}
 
   onSearchInputChange(event: Event): void {
@@ -22,10 +21,12 @@ export class HeaderComponent implements OnInit {
   }
 
   ngOnInit() {
+    this.updateSearchVisibility(this.router.url);
+
     this.router.events
       .pipe(filter((event) => event instanceof NavigationEnd))
-      .subscribe((event: NavigationEnd) => {
-        this.updateSearchVisibility(event.url);
+      .subscribe(() => {
+        this.updateSearchVisibility(this.router.url);
       });
   }
 

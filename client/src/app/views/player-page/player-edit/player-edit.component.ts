@@ -13,29 +13,55 @@ import {
   FormGroup,
   Validators,
   ReactiveFormsModule,
-} from '@angular/forms';
-import {
-  FormsModule,
   AbstractControl,
   ValidationErrors,
   ValidatorFn,
 } from '@angular/forms';
 
+interface Player {
+  player_id: number;
+  long_name: string;
+  club_name: string;
+  fifa_version: string;
+  player_positions: string;
+  overall: number;
+  potential: number;
+  nationality_name: string;
+  pace?: number;
+  shooting?: number;
+  passing?: number;
+  dribbling?: number;
+  defending?: number;
+  physic?: number;
+}
+
+type Field = {
+  key: keyof Player;
+  label: string;
+  placeholder: string;
+  required?: boolean;
+};
+
 @Component({
   selector: 'app-player-edit',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule],
   templateUrl: './player-edit.component.html',
   styleUrls: ['./player-edit.component.scss'],
 })
 export class PlayerEditComponent implements OnInit, OnChanges {
-  @Input() player: any;
+  @Input() player: Player | null = null;
   @Input() error: any;
   @Input() loading: boolean = false;
   @Output() close = new EventEmitter<void>();
-  @Output() save = new EventEmitter<any>();
+  @Output() save = new EventEmitter<Player>();
+  playerForm!: FormGroup;
+  originalPlayer: Player | null = null;
+  isFormChanged: boolean = false;
 
-  fieldsForm = [
+  constructor(private fb: FormBuilder) {}
+
+  fieldsForm: Field[] = [
     {
       key: 'long_name',
       label: 'Name',
@@ -72,38 +98,38 @@ export class PlayerEditComponent implements OnInit, OnChanges {
       placeholder: 'Enter nationality',
       required: true,
     },
-    { key: 'pace', label: 'Pace', placeholder: 'Enter pace' },
-    { key: 'shooting', label: 'Shooting', placeholder: 'Enter shooting' },
-    { key: 'passing', label: 'Passing', placeholder: 'Enter passing' },
-    { key: 'dribbling', label: 'Dribbling', placeholder: 'Enter dribbling' },
-    { key: 'defending', label: 'Defending', placeholder: 'Enter defending' },
-    { key: 'physic', label: 'Physic', placeholder: 'Enter physic' },
+    { key: 'pace', label: 'Pace', placeholder: 'Enter pace', required: true },
+    {
+      key: 'shooting',
+      label: 'Shooting',
+      placeholder: 'Enter shooting',
+      required: true,
+    },
+    {
+      key: 'passing',
+      label: 'Passing',
+      placeholder: 'Enter passing',
+      required: true,
+    },
+    {
+      key: 'dribbling',
+      label: 'Dribbling',
+      placeholder: 'Enter dribbling',
+      required: true,
+    },
+    {
+      key: 'defending',
+      label: 'Defending',
+      placeholder: 'Enter defending',
+      required: true,
+    },
+    {
+      key: 'physic',
+      label: 'Physic',
+      placeholder: 'Enter physic',
+      required: true,
+    },
   ];
-  playerForm: FormGroup;
-  originalPlayer: any = null;
-  isFormChanged: boolean = false;
-
-  constructor(private fb: FormBuilder) {}
-  form: FormGroup;
-
-  integerValidator(): ValidatorFn {
-    return (control: AbstractControl): ValidationErrors | null => {
-      const value = control.value;
-      if (
-        value !== null &&
-        value !== undefined &&
-        !Number.isNaN(Number(value))
-      ) {
-        if (!Number.isInteger(Number(value))) {
-          return { integer: 'El valor debe ser un número entero' };
-        }
-      } else if (value !== null && value !== undefined && value !== '') {
-        return { integer: 'El valor debe ser un número entero' };
-      }
-
-      return null;
-    };
-  }
 
   ngOnInit(): void {
     this.initializePlayerData();
@@ -117,73 +143,80 @@ export class PlayerEditComponent implements OnInit, OnChanges {
     }
   }
 
-  private initializePlayerData(): void {
-    if (this.player && Object.keys(this.player).length) {
-      this.originalPlayer = { ...this.player };
-    }
+  private initializePlayerData() {
+    this.originalPlayer = this.player ? { ...this.player } : null;
   }
-  private initializeForm(): void {
-    this.playerForm = this.fb.group({});
-    this.fieldsForm.forEach((field) => {
-      let validators = field.required ? [Validators.required] : [];
 
-      switch (field.key) {
-        case 'player_id':
-        case 'fifa_version':
-        case 'fifa_update':
-        case 'overall':
-        case 'potential':
-        case 'value_eur':
-        case 'age':
-        case 'height_cm':
-        case 'weight_kg':
-        case 'pace':
-        case 'shooting':
-        case 'passing':
-        case 'dribbling':
-        case 'defending':
-        case 'physic':
-          validators.push(this.integerValidator());
-          break;
+  private initializeForm() {
+    const controlsConfig = this.fieldsForm.reduce((acc, field) => {
+      const validators = field.required ? [Validators.required] : [];
+      if (
+        [
+          'overall',
+          'potential',
+          'pace',
+          'shooting',
+          'passing',
+          'dribbling',
+          'defending',
+          'physic',
+        ].includes(field.key)
+      ) {
+        validators.push(this.integerValidator());
       }
+      acc[field.key] = [
+        this.originalPlayer ? this.originalPlayer[field.key] : '',
+        validators,
+      ];
+      return acc;
+    }, {} as { [key: string]: any });
 
-      const initialValue = this.originalPlayer
-        ? this.originalPlayer[field.key]
-        : '';
-      this.playerForm.addControl(
-        field.key,
-        this.fb.control(initialValue, validators)
-      );
-    });
-
-    this.playerForm.valueChanges.subscribe(() => {
-      this.checkFormChanges();
-    });
+    this.playerForm = this.fb.group(controlsConfig);
+    this.playerForm.valueChanges.subscribe(() => this.checkFormChanges());
   }
 
-  checkFormChanges(): void {
-    const formValues = this.playerForm.value;
-    const hasChanges = Object.keys(formValues).some(
-      (key) => formValues[key] !== this.originalPlayer[key]
-    );
+  checkFormChanges() {
+    const formValues = this.playerForm.getRawValue();
+    const hasChanges = Object.keys(formValues).some((key) => {
+      const originalValue = this.originalPlayer
+        ? this.originalPlayer[key as keyof Player]
+        : null;
+      const currentValue = formValues[key];
+
+      return currentValue !== originalValue;
+    });
+
     this.isFormChanged = hasChanges && this.playerForm.valid;
   }
 
-  onSave(): void {
-    if (this.playerForm.valid) {
-      const updatedPlayer = {
-        ...this.originalPlayer,
-        ...this.playerForm.value,
-      };
+  integerValidator(): ValidatorFn {
+    return (control: AbstractControl): ValidationErrors | null => {
+      const value = control.value;
+      return value !== null &&
+        value !== '' &&
+        (!Number.isInteger(+value) || Number.isNaN(+value))
+        ? { integer: 'El valor debe ser un número entero' }
+        : null;
+    };
+  }
 
-      this.save.emit(updatedPlayer);
-      this.playerForm.reset(this.originalPlayer);
+  resetForm() {
+    this.playerForm.reset(this.originalPlayer);
+    this.playerForm.markAsPristine();
+    this.error = null;
+    this.loading = false;
+  }
+
+  onSave() {
+    if (this.playerForm.valid) {
+      this.save.emit({ ...this.originalPlayer, ...this.playerForm.value });
+      this.resetForm();
     }
   }
 
-  onClose(): void {
+  onClose() {
     this.close.emit();
-    this.playerForm.reset(this.originalPlayer);
+    this.resetForm();
     this.isFormChanged = false;
   }
 }

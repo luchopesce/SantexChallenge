@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { BehaviorSubject, Observable, of } from 'rxjs';
-import { tap, catchError } from 'rxjs/operators';
+import { BehaviorSubject, Observable } from 'rxjs';
+import { tap } from 'rxjs/operators';
 import { Router } from '@angular/router';
 import { environment } from '../../../environments/environment';
 
@@ -22,6 +22,10 @@ export class AuthService {
       username,
       password,
     });
+  }
+
+  getUserData(): Observable<any> {
+    return this.http.get(`${this.apiUrl}/auth/settings`);
   }
 
   login(username: string, password: string): Observable<any> {
@@ -52,27 +56,5 @@ export class AuthService {
     localStorage.removeItem('token');
     this.authStatus.next(false);
     this.router.navigate(['/players']);
-  }
-
-  validateToken(): Observable<boolean> {
-    const token = this.getToken();
-    if (!token) {
-      this.logout();
-      return of(false);
-    }
-
-    return this.http
-      .post<boolean>(`${this.apiUrl}/auth/validate-token`, { token })
-      .pipe(
-        tap((isValid) => {
-          if (!isValid) {
-            this.logout();
-          }
-        }),
-        catchError(() => {
-          this.logout();
-          return of(false);
-        })
-      );
   }
 }
