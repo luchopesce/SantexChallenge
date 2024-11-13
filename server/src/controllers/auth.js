@@ -14,10 +14,24 @@ const registerUser = async (req, res) => {
   }
 };
 
-const loginUser = async (req, res) => {
-  const { username, password } = req.body;
+const getUserData = async (req, res) => {
+  const userToken = req.user;
   try {
-    const userLogged = await authService.loginUser(username, password);
+    const user = await authService.getUserData(userToken);
+    res.status(201).json({
+      status: "ok",
+      data: user,
+    });
+  } catch (error) {
+    handleError(res, error);
+  }
+};
+
+const loginUser = async (req, res) => {
+  const userData = req.body;
+
+  try {
+    const userLogged = await authService.loginUser(userData);
     res.status(200).json({
       status: "ok",
       token: userLogged.token,
@@ -31,4 +45,5 @@ const loginUser = async (req, res) => {
 module.exports = {
   registerUser,
   loginUser,
+  getUserData,
 };

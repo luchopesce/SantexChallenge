@@ -25,8 +25,9 @@ export class PlayerCreateComponent implements OnInit {
   @Input() loading: boolean = false;
   @Output() close = new EventEmitter<void>();
   @Output() save = new EventEmitter<any>();
+  form: FormGroup;
 
-  initialValues: any;
+  constructor(private fb: FormBuilder) {}
 
   fieldsForm = [
     {
@@ -287,6 +288,7 @@ export class PlayerCreateComponent implements OnInit {
       placeholder: 'Enter player face URL',
     },
   ];
+
   positions = [
     'CM',
     'CDM',
@@ -336,35 +338,12 @@ export class PlayerCreateComponent implements OnInit {
     'Turkey',
   ];
 
-  constructor(private fb: FormBuilder) {}
-
-  form: FormGroup;
-  integerValidator(): ValidatorFn {
-    return (control: AbstractControl): ValidationErrors | null => {
-      const value = control.value;
-      if (
-        value !== null &&
-        value !== undefined &&
-        !Number.isNaN(Number(value))
-      ) {
-        if (!Number.isInteger(Number(value))) {
-          return { integer: 'El valor debe ser un número entero' };
-        }
-      } else if (value !== null && value !== undefined && value !== '') {
-        return { integer: 'El valor debe ser un número entero' };
-      }
-
-      return null;
-    };
-  }
-
   ngOnInit(): void {
-    this.form = this.fb.group({});
-    this.buildForm();
-    this.initialValues = this.form.value;
+    this.initializeForm();
   }
 
-  buildForm() {
+  private initializeForm() {
+    this.form = this.fb.group({});
     this.fieldsForm.forEach((field) => {
       let validators = field.required ? [Validators.required] : [];
 
@@ -430,27 +409,30 @@ export class PlayerCreateComponent implements OnInit {
     });
   }
 
+  integerValidator(): ValidatorFn {
+    return (control: AbstractControl): ValidationErrors | null => {
+      const value = control.value;
+      if (
+        value !== null &&
+        value !== undefined &&
+        !Number.isNaN(Number(value))
+      ) {
+        if (!Number.isInteger(Number(value))) {
+          return { integer: 'El valor debe ser un número entero' };
+        }
+      } else if (value !== null && value !== undefined && value !== '') {
+        return { integer: 'El valor debe ser un número entero' };
+      }
+
+      return null;
+    };
+  }
+
   matchRandom() {
     this.fieldsForm.forEach((field) => {
       const randomValue = this.getRandomValue(field.key);
       this.form.get(field.key)?.setValue(randomValue);
     });
-  }
-
-  generateRandomDate(): string {
-    const start = new Date(2010, 0, 1);
-    const end = new Date();
-
-    const randomTimestamp =
-      start.getTime() + Math.random() * (end.getTime() - start.getTime());
-
-    const randomDate = new Date(randomTimestamp);
-
-    const year = randomDate.getFullYear();
-    const month = (randomDate.getMonth() + 1).toString().padStart(2, '0');
-    const day = randomDate.getDate().toString().padStart(2, '0');
-
-    return `${year}-${month}-${day} 00:00:00`;
   }
 
   getRandomValue(fieldKey: string): any {
@@ -471,8 +453,6 @@ export class PlayerCreateComponent implements OnInit {
         return Math.floor(Math.random() * 10000000);
       case 'age':
         return Math.floor(Math.random() * (40 - 15 + 1)) + 15;
-      case 'dob':
-        return this.generateRandomDate();
       case 'height_cm':
         return Math.floor(Math.random() * (199 - 120 + 1)) + 120;
       case 'weight_kg':
@@ -542,10 +522,6 @@ export class PlayerCreateComponent implements OnInit {
     }
   }
 
-  restoreInitialValues() {
-    this.form.patchValue(this.initialValues);
-  }
-
   resetForm() {
     this.form.reset();
     this.error = null;
@@ -556,10 +532,11 @@ export class PlayerCreateComponent implements OnInit {
     if (this.form.valid) {
       this.save.emit(this.form.value);
     }
+    this.resetForm();
   }
 
   onClose() {
-    this.resetForm();
     this.close.emit();
+    this.resetForm();
   }
 }

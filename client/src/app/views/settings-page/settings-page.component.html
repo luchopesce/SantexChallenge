@@ -1,5 +1,70 @@
-<div
-  class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom"
->
-  <h1 class="h2">Settings</h1>
+<div class="container mt-5">
+  <div class="card shadow-lg" style="max-width: 1200px; margin: auto">
+    <div class="card-body">
+      <h5 class="card-title text-center">Configuración de Cuenta</h5>
+
+      <div class="mb-4">
+        <h6 class="card-subtitle text-muted">
+          Usuario: {{ userData?.username }}
+        </h6>
+        <p class="card-text">
+          Fecha de creación: {{ userData?.createdAt | date : "dd/MM/yyyy" }}
+        </p>
+      </div>
+
+      <h6>Cambiar Contraseña</h6>
+      <form
+        (ngSubmit)="onSubmit()"
+        #passwordForm="ngForm"
+        style="max-width: 600px; margin: auto"
+      >
+        <div class="form-group mb-3">
+          <label for="currentPassword">Contraseña Actual</label>
+          <input
+            type="password"
+            id="currentPassword"
+            class="form-control"
+            name="currentPassword"
+            ngModel
+            required
+            placeholder="Introduce tu contraseña actual"
+          />
+        </div>
+
+        <div class="form-group mb-3">
+          <label for="newPassword">Nueva Contraseña</label>
+          <input
+            type="password"
+            id="newPassword"
+            class="form-control"
+            name="newPassword"
+            ngModel
+            required
+            placeholder="Introduce la nueva contraseña"
+          />
+        </div>
+
+        <div class="form-group mb-3">
+          <label for="confirmPassword">Confirmar Contraseña</label>
+          <input
+            type="password"
+            id="confirmPassword"
+            class="form-control"
+            name="confirmPassword"
+            ngModel
+            required
+            placeholder="Confirma tu nueva contraseña"
+          />
+        </div>
+
+        <button
+          type="submit"
+          class="btn btn-primary btn-block"
+          [disabled]="!passwordForm.valid"
+        >
+          Guardar Cambios
+        </button>
+      </form>
+    </div>
+  </div>
 </div>

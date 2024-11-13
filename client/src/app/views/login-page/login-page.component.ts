@@ -16,8 +16,10 @@ import { ToastComponent } from '../../core/components/toast/toast.component';
 export class LoginPageComponent implements OnInit {
   username: string = '';
   password: string = '';
+
   isLogin: boolean = true;
   isLoggedIn: boolean = false;
+
   error: string | null = null;
   showToast: boolean = false;
   toastMessage: string = '';
