@@ -10,6 +10,7 @@ import { SearchService } from '../../../core/services/search.service';
 import { UtilsService } from '../../../core/services/utils.service';
 import { SocketService } from '../../../core/services/socket.service';
 import { ToastComponent } from '../../../core/components/toast/toast.component';
+import { Player, PlayerHistory } from '../../../core/models/player.model';
 
 @Component({
   selector: 'app-player-list',
@@ -35,10 +36,10 @@ export class PlayerListComponent implements OnInit, OnDestroy {
   toastMessage: string = '';
   toastSize: string = '';
 
-  playersList: any[] = [];
-  historyPlayer: any[] = [];
-  originalPlayer: any = null;
-  selectedPlayer: any;
+  playersList: Player[] = [];
+  historyPlayer: PlayerHistory[] = [];
+  originalPlayer: Player | null;
+  selectedPlayer: Player | null;
 
   searchTerm: string = '';
   totalResults: number = 0;
@@ -86,9 +87,9 @@ export class PlayerListComponent implements OnInit, OnDestroy {
   }
 
   private updatePlayersList(
-    player: any,
+    player: Player,
     action: 'create' | 'update' | 'delete'
-  ) {
+  ): void {
     switch (action) {
       case 'create':
         this.playersList.push(player);
@@ -116,7 +117,7 @@ export class PlayerListComponent implements OnInit, OnDestroy {
     }
   }
 
-  private setupSocketListeners() {
+  private setupSocketListeners(): void {
     this.socketService.onPlayerCreated((newPlayer) => {
       this.updatePlayersList(newPlayer, 'create');
     });
@@ -134,7 +135,7 @@ export class PlayerListComponent implements OnInit, OnDestroy {
     });
   }
 
-  private setupSearchListener() {
+  private setupSearchListener(): void {
     this.searchService.currentSearchTerm
       .pipe(debounceTime(300), distinctUntilChanged(), takeUntil(this.destroy$))
       .subscribe((value) => {
@@ -143,7 +144,7 @@ export class PlayerListComponent implements OnInit, OnDestroy {
       });
   }
 
-  private getAllPlayers() {
+  private getAllPlayers(): void {
     this.isLoading = true;
     this.error = null;
 
@@ -171,7 +172,7 @@ export class PlayerListComponent implements OnInit, OnDestroy {
       });
   }
 
-  private getPlayerById(player: any) {
+  private getPlayerById(player: Player): void {
     this.isLoading = true;
     this.error = null;
 
@@ -201,7 +202,7 @@ export class PlayerListComponent implements OnInit, OnDestroy {
       });
   }
 
-  private getPlayerHistory(playerId: any) {
+  private getPlayerHistory(playerId: number): void {
     this.isLoading = true;
     this.error = null;
 
@@ -227,7 +228,7 @@ export class PlayerListComponent implements OnInit, OnDestroy {
     this.getAllPlayers();
   }
 
-  updatePlayer(updatedPlayer: any) {
+  updatePlayer(updatedPlayer: Player): void {
     this.checkLoginStatus();
     this.isLoading = true;
     this.error = null;
@@ -256,7 +257,7 @@ export class PlayerListComponent implements OnInit, OnDestroy {
     }, 3000);
   }
 
-  deletePlayer(player: any) {
+  deletePlayer(player: Player): void {
     this.checkLoginStatus();
     this.isLoading = true;
     this.error = null;
@@ -285,7 +286,7 @@ export class PlayerListComponent implements OnInit, OnDestroy {
     }, 3000);
   }
 
-  toggleSort(field: string) {
+  toggleSort(field: string): void {
     if (this.sortBy === field) {
       this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
     } else {
@@ -306,14 +307,14 @@ export class PlayerListComponent implements OnInit, OnDestroy {
     }
   }
 
-  openModal(modalId: string, player: any) {
+  openModal(modalId: string, player: Player): void {
     this.originalPlayer = JSON.parse(JSON.stringify(player));
     this.getPlayerById(player);
     this.getPlayerHistory(player.player_id);
     this.utilsService.openModal(modalId);
   }
 
-  closeModal(modalId: string) {
+  closeModal(modalId: string): void {
     this.selectedPlayer = null;
     this.utilsService.closeModal(modalId);
   }

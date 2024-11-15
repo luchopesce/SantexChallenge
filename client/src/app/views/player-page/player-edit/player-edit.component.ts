@@ -17,30 +17,7 @@ import {
   ValidationErrors,
   ValidatorFn,
 } from '@angular/forms';
-
-interface Player {
-  player_id: number;
-  long_name: string;
-  club_name: string;
-  fifa_version: string;
-  player_positions: string;
-  overall: number;
-  potential: number;
-  nationality_name: string;
-  pace?: number;
-  shooting?: number;
-  passing?: number;
-  dribbling?: number;
-  defending?: number;
-  physic?: number;
-}
-
-type Field = {
-  key: keyof Player;
-  label: string;
-  placeholder: string;
-  required?: boolean;
-};
+import { Player, Field } from '../../../core/models/player.model';
 
 @Component({
   selector: 'app-player-edit',
@@ -51,7 +28,7 @@ type Field = {
 })
 export class PlayerEditComponent implements OnInit, OnChanges {
   @Input() player: Player | null = null;
-  @Input() error: any;
+  @Input() error: any | null = null;
   @Input() loading: boolean = false;
   @Output() close = new EventEmitter<void>();
   @Output() save = new EventEmitter<Player>();
@@ -98,45 +75,40 @@ export class PlayerEditComponent implements OnInit, OnChanges {
       placeholder: 'Enter nationality',
       required: true,
     },
-    { key: 'pace', label: 'Pace', placeholder: 'Enter pace', required: true },
+    { key: 'pace', label: 'Pace', placeholder: 'Enter pace' },
     {
       key: 'shooting',
       label: 'Shooting',
       placeholder: 'Enter shooting',
-      required: true,
     },
     {
       key: 'passing',
       label: 'Passing',
       placeholder: 'Enter passing',
-      required: true,
     },
     {
       key: 'dribbling',
       label: 'Dribbling',
       placeholder: 'Enter dribbling',
-      required: true,
     },
     {
       key: 'defending',
       label: 'Defending',
       placeholder: 'Enter defending',
-      required: true,
     },
     {
       key: 'physic',
       label: 'Physic',
       placeholder: 'Enter physic',
-      required: true,
     },
   ];
 
-  ngOnInit(): void {
+  ngOnInit() {
     this.initializePlayerData();
     this.initializeForm();
   }
 
-  ngOnChanges(changes: SimpleChanges): void {
+  ngOnChanges(changes: SimpleChanges) {
     if (changes['player'] && this.player) {
       this.initializePlayerData();
       this.initializeForm();
@@ -149,25 +121,27 @@ export class PlayerEditComponent implements OnInit, OnChanges {
 
   private initializeForm() {
     const controlsConfig = this.fieldsForm.reduce((acc, field) => {
-      const validators = field.required ? [Validators.required] : [];
-      if (
-        [
-          'overall',
-          'potential',
-          'pace',
-          'shooting',
-          'passing',
-          'dribbling',
-          'defending',
-          'physic',
-        ].includes(field.key)
-      ) {
-        validators.push(this.integerValidator());
+      if (field.key) {
+        const validators = field.required ? [Validators.required] : [];
+        if (
+          [
+            'overall',
+            'potential',
+            'pace',
+            'shooting',
+            'passing',
+            'dribbling',
+            'defending',
+            'physic',
+          ].includes(field.key)
+        ) {
+          validators.push(this.integerValidator());
+        }
+        acc[field.key] = [
+          this.originalPlayer ? this.originalPlayer[field.key] : '',
+          validators,
+        ];
       }
-      acc[field.key] = [
-        this.originalPlayer ? this.originalPlayer[field.key] : '',
-        validators,
-      ];
       return acc;
     }, {} as { [key: string]: any });
 

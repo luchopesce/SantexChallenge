@@ -7,6 +7,7 @@ import {
 } from '@angular/core';
 import { ChartConfiguration, ChartData, ChartType } from 'chart.js';
 import { BaseChartDirective } from 'ng2-charts';
+import { Player } from '../../models/player.model';
 
 @Component({
   selector: 'app-radar-chart',
@@ -16,7 +17,7 @@ import { BaseChartDirective } from 'ng2-charts';
   imports: [BaseChartDirective],
 })
 export class RadarChartComponent implements OnChanges {
-  @Input() player?: { long_name: string; skills: { [key: string]: number } };
+  @Input() player: Player | null = null;
 
   @ViewChild(BaseChartDirective) chart?: BaseChartDirective;
 

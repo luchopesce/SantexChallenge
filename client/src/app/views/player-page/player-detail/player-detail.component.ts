@@ -1,8 +1,8 @@
 import { CommonModule } from '@angular/common';
-import { Component, Input, OnInit, Output, EventEmitter } from '@angular/core';
+import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { RadarChartComponent } from '../../../core/components/radar-chart/radar-chart.component';
 import { LineChartComponent } from '../../../core/components/line-chart/line-chart.component';
-import { ApiService } from '../../../core/services/api.service';
+import { Player, PlayerHistory } from '../../../core/models/player.model';
 
 @Component({
   selector: 'app-player-detail',
@@ -12,9 +12,9 @@ import { ApiService } from '../../../core/services/api.service';
   styleUrls: ['./player-detail.component.scss'],
 })
 export class PlayerDetailComponent {
-  @Input() player: any;
-  @Input() historyPlayer: any[] = [];
-  @Input() error: any;
+  @Input() player: Player | null = null;
+  @Input() historyPlayer: PlayerHistory[] = [];
+  @Input() error: any | null = null;
   @Input() loading: boolean = false;
   @Output() close = new EventEmitter<void>();
 
