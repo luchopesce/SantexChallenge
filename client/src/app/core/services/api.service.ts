@@ -54,7 +54,7 @@ export class ApiService {
     );
   }
 
-  getPlayerHistory(playerId: string): Observable<any[]> {
+  getPlayerHistory(playerId: number): Observable<any[]> {
     return this.http.get<any[]>(`${this.apiUrl}/player/history/${playerId}`);
   }
 

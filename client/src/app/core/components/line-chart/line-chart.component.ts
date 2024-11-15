@@ -8,8 +8,8 @@ import {
 import { ChartConfiguration, ChartData, ChartType } from 'chart.js';
 import { BaseChartDirective } from 'ng2-charts';
 import { Chart, Colors } from 'chart.js';
+import { PlayerHistory } from '../../models/player.model';
 
-// Registrar colores de Chart.js
 Chart.register(Colors);
 
 @Component({
@@ -20,10 +20,7 @@ Chart.register(Colors);
   imports: [BaseChartDirective],
 })
 export class LineChartComponent implements OnChanges {
-  @Input() playerHistory?: {
-    version: string;
-    skills: { [key: string]: number };
-  }[];
+  @Input() playerHistory: PlayerHistory[] = [];
 
   @ViewChild(BaseChartDirective) chart?: BaseChartDirective;
 
