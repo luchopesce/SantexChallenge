@@ -149,6 +149,21 @@ export class PlayerEditComponent implements OnInit, OnChanges {
     this.playerForm.valueChanges.subscribe(() => this.checkFormChanges());
   }
 
+  getFieldErrors(key: string): string[] {
+    const errors = this.playerForm.get(key)?.errors;
+    if (!errors) return [];
+
+    const errorMessages: string[] = [];
+    if (errors['required']) errorMessages.push('Ingrese un valor');
+    if (errors['integer'])
+      errorMessages.push('El valor debe ser un número entero');
+    if (errors['min']) errorMessages.push('Valor debe ser mayor a 0');
+    if (errors['max']) errorMessages.push('Valor debe ser menor a 100');
+    if (errors['minlength']) errorMessages.push('Mínimo 3 caracteres');
+
+    return errorMessages;
+  }
+
   checkFormChanges() {
     const formValues = this.playerForm.getRawValue();
     const hasChanges = Object.keys(formValues).some((key) => {

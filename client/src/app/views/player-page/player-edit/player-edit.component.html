@@ -32,20 +32,18 @@
 
         <ng-container *ngIf="!error">
           <div *ngIf="!player || loading" class="text-center">
-            <div class="spinner-border text-primary" role="status">
-              <span class="visually-hidden">Loading...</span>
-            </div>
-            <p>Esperando...</p>
+            <div class="spinner-border text-primary" role="status"></div>
+            <p>Loading...</p>
           </div>
 
           <ng-container *ngIf="player && !loading">
             <form [formGroup]="playerForm">
               <div *ngFor="let field of fieldsForm" class="mb-3">
-                <label [for]="field.key" class="form-label">{{
-                  field.label
-                }}</label>
-
+                <label [for]="field.key || null" class="form-label">
+                  {{ field.label }}
+                </label>
                 <input
+                  *ngIf="field.key"
                   type="text"
                   class="form-control"
                   [id]="field.key"
@@ -56,28 +54,16 @@
                     playerForm.get(field.key)?.touched
                   "
                 />
-
                 <div
                   *ngIf="
+                    field.key &&
                     playerForm.get(field.key)?.invalid &&
                     playerForm.get(field.key)?.touched
                   "
                   class="invalid-feedback"
                 >
-                  <div *ngIf="playerForm.get(field.key)?.hasError('integer')">
-                    {{ playerForm.get(field.key)?.errors?.['integer'] }}
-                  </div>
-                  <div *ngIf="playerForm.get(field.key)?.hasError('minlength')">
-                    Minimo 3 caracteres
-                  </div>
-                  <div *ngIf="playerForm.get(field.key)?.hasError('required')">
-                    Ingrese un valor
-                  </div>
-                  <div *ngIf="playerForm.get(field.key)?.hasError('min')">
-                    Valor debe ser mayor a 0
-                  </div>
-                  <div *ngIf="playerForm.get(field.key)?.hasError('max')">
-                    Valor debe ser menor a 100
+                  <div *ngFor="let error of getFieldErrors(field.key)">
+                    {{ error }}
                   </div>
                 </div>
               </div>
@@ -85,13 +71,12 @@
           </ng-container>
         </ng-container>
       </div>
-
       <div
         class="modal-footer p-3 d-flex justify-content-between align-items-center"
       >
-        <span *ngIf="!error" class="text-muted me-auto">{{
-          player ? "Fifa v" + player.fifa_version + "." : ""
-        }}</span>
+        <span *ngIf="!error" class="text-muted me-auto">
+          {{ player ? "Fifa v" + player.fifa_version + "." : "" }}
+        </span>
         <div class="d-flex">
           <button type="button" class="btn btn-secondary" (click)="onClose()">
             Close
